@@ -1,0 +1,106 @@
+/* 
+Move Panel styling with chess theme
+Date: 02/02/2026
+file: /AI_Chess_Senior_Design/GUI/static/CSS/moves.css
+*/
+
+/* Game Moves Panel - narrow column */
+.game-moves {
+    background: linear-gradient(135deg, #6B4423 0%, #8B6F47 100%);
+    border: 3px solid #2c1810;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    padding: 12px;
+    height: 650px;
+    max-width: 200px;
+    min-width: 180px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Game Moves Header */
+.game-moves h3 {
+    color: #f0d9b5;
+    margin: 0 0 10px 0;
+    text-align: center;
+    font-size: 14px;
+    border-bottom: 2px solid #f0d9b5;
+    padding-bottom: 8px;
+}
+
+/* Moves List Container */
+.moves-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for moves list */
+.moves-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.moves-list::-webkit-scrollbar-track {
+    background: rgba(240, 217, 181, 0.2);
+    border-radius: 4px;
+}
+
+.moves-list::-webkit-scrollbar-thumb {
+    background: #D2B48C;
+    border-radius: 4px;
+}
+
+.moves-list::-webkit-scrollbar-thumb:hover {
+    background: #f0d9b5;
+}
+
+/* Individual Move Item */
+.move-item {
+    padding: 5px 6px;
+    border-bottom: 1px solid rgba(240, 217, 181, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.move-item:hover {
+    background-color: rgba(240, 217, 181, 0.1);
+}
+
+/* Move Number */
+.move-number {
+    color: #D2B48C;
+    margin-right: 6px;
+    min-width: 22px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+/* Move Text */
+.move-text {
+    flex: 1;
+    font-size: 12px;
+    padding: 0 2px;
+    min-width: 0;
+}
+
+/* White Move Text */
+.move-text.white-move {
+    color: #f0d9b5;
+    font-weight: 600;
+}
+
+/* Black Move Text */
+.move-text.black-move {
+    color: #D2B48C;
+    font-weight: 500;
+}
+
+/* Empty state message */
+.moves-list div[style*="italic"] {
+    color: #D2B48C !important;
+    font-style: italic;
+    text-align: center;
+    padding: 20px 10px;
+}

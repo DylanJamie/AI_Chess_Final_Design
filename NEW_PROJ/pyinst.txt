@@ -1,0 +1,3 @@
+pyinstaller --noconfirm --onefile -w -n ChessApp -i MyIcon.icns --add-data "GUI:GUI" --add-data "nnue:nnue" --paths "." launcher.py
+create-dmg   --volname "ChessApp Installer"   --icon-size 100   --app-drop-link 400 120   "ChessApp-Final.dmg"   "dist/ChessApp.app"
+you might need to include stock fish in the app build.

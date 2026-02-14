@@ -1,0 +1,23 @@
+#!/bin/bash
+
+cleanup() {
+    echo ""
+    echo "Stopping all servers..."
+    kill 0
+    exit 0
+}
+
+trap cleanup SIGINT SIGTERM
+
+# Start Server on the PI white
+ssh pi@pi5-chess.local "source ~/chess-env/bin/activate && python ~/Downloads/PIGAME/Boardapp/pi_chess_server.py" &
+
+# Start Server on the PI Black
+ssh pi@pi5-chess2.local "source ~/chess-env/bin/activate && python ~/Downloads/PIGAME2/Boardapp/pi_chess_server.py" &
+
+# Start the server
+python GUI/app.py &
+
+# Show user process is running
+wait
+echo Servers are running

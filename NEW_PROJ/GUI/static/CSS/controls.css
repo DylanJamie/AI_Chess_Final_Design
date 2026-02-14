@@ -1,0 +1,566 @@
+/* 
+Control buttons and panels styling with chess theme - Modern Layout
+Date: 02/02/2026
+file: /AI_Chess_Senior_Design/GUI/static/CSS/controls.css
+*/
+
+/* /\* Left Panel - Game Speed Only *\/ */
+/* .left-panel { */
+/*     width: 200px; */
+/*     display: flex; */
+/*     flex-direction: column; */
+/*     gap: 20px; */
+/*     flex-shrink: 0; */
+/* } */
+
+/* /\* Right Panel - Controls, Score, and Moves *\/ */
+/* .right-panel { */
+/*     width: 320px; */
+/*     display: flex; */
+/*     flex-direction: column; */
+/*     gap: 15px; */
+/*     flex-shrink: 0; */
+/* } */
+
+/* In controls.css, find and update these */
+.left-panel, .right-panel, .middle-column {
+    width: 100%;
+    display: flex; /* Changed from contents to flex */
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Ensure the control buttons look good in a narrow column */
+.control-btn {
+    width: 100%; /* Buttons take full width of the middle column */
+    margin: 0;
+}
+
+/* Single block: Game Speed + Control Buttons */
+.controls-block {
+    background: linear-gradient(135deg, #6B4423 0%, #8B6F47 100%);
+    border: 3px solid #2c1810;
+    border-radius: 15px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Game Speed Panel (inside controls block, no extra box) */
+.controls-block .game-speed-panel {
+    background: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Speed Display Box */
+.speed-display {
+    background-color: #f0d9b5;
+    border: 2px solid #2c1810;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #2c1810;
+    text-align: center;
+    min-width: 80px;
+}
+
+/* Speed Label (works in overlay and inside controls-block) */
+.speed-label,
+.controls-block .game-speed-panel .speed-label {
+    color: #f0d9b5;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Slider for game speed */
+.speed-slider {
+    width: 100%;
+    height: 8px;
+    background: #D2B48C;
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    border: 1px solid #2c1810;
+}
+
+/* Slider thumb */
+.speed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #f0d9b5;
+    border: 2px solid #2c1810;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Speed Warning Text */
+.speed-warning,
+.controls-block .game-speed-panel .speed-warning {
+    color: #f0d9b5;
+    font-size: 11px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Control Buttons Container - Rows */
+.control-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Each row: Pause+Play, or Prev+Next, or single button */
+.control-row {
+    display: flex;
+    gap: 8px;
+    justify-content: stretch;
+}
+
+.control-row .control-btn {
+    flex: 1;
+}
+
+/* Prev and Next side by side */
+.navigation-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* Base Control Button Style - Compact */
+.control-btn {
+    padding: 15px 10px;
+    font-size: 13px;
+    font-weight: bold;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background: linear-gradient(135deg, #3d5a6b 0%, #496a7d 100%);
+    color: #ffffff;
+}
+
+.control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.control-btn:active {
+    transform: translateY(0);
+}
+
+/* Button Icon Size */
+.button-icon {
+    font-size: 22px;
+    line-height: 1;
+    margin: 0;
+}
+
+/* Button Text Style */
+.button-text {
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Pause Button */
+.pause-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.pause-btn:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+}
+
+/* Play Button */
+.play-btn {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.play-btn:hover {
+    background: linear-gradient(135deg, #229954 0%, #1e8449 100%);
+}
+
+/* Navigation Buttons - Side by Side */
+.navigation-buttons {
+    display: contents; /* Makes children appear as direct grid items */
+}
+
+.nav-btn {
+    background: linear-gradient(135deg, #5d6d7e 0%, #566573 100%);
+}
+
+.nav-btn:hover {
+    background: linear-gradient(135deg, #566573 0%, #4d5656 100%);
+}
+
+.nav-btn:disabled {
+    background: linear-gradient(135deg, #3a3a3a 0%, #2c2c2c 100%);
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none;
+}
+
+/* Reset Button */
+.reset-btn {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.reset-btn:hover {
+    background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+/* Interrupt Button - Spans 2 columns */
+.interrupt-btn {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #8b0000 0%, #a52a2a 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.interrupt-btn:hover {
+    background: linear-gradient(135deg, #6b0000 0%, #8b0000 100%);
+}
+
+/* Score Panel */
+.score-panel {
+    background: linear-gradient(135deg, #6B4423 0%, #8B6F47 100%);
+    border: 3px solid #2c1810;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.score-title {
+    color: #f0d9b5;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.score-display {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: rgba(240, 217, 181, 0.9);
+    border: 2px solid #2c1810;
+    border-radius: 6px;
+}
+
+.score-label {
+    font-weight: bold;
+    color: #2c1810;
+    font-size: 14px;
+}
+
+.score-value {
+    font-weight: bold;
+    color: #2c1810;
+    font-size: 20px;
+}
+
+/* Game Moves Panel */
+.game-moves {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border: 3px solid #2c1810;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    padding: 15px;
+    height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Game Moves Header */
+.game-moves h3 {
+    color: #ecf0f1;
+    margin: 0 0 15px 0;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 2px solid rgba(236, 240, 241, 0.3);
+    padding-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Moves List Container */
+.moves-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for moves list */
+.moves-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.moves-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.moves-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.moves-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Individual Move Item */
+.move-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.move-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Move Number */
+.move-number {
+    color: #95a5a6;
+    margin-right: 10px;
+    min-width: 30px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+/* Move Text */
+.move-text {
+    flex: 1;
+    font-size: 14px;
+    padding: 0 5px;
+}
+
+/* White Move Text */
+.move-text.white-move {
+    color: #ecf0f1;
+    font-weight: 600;
+}
+
+/* Black Move Text */
+.move-text.black-move {
+    color: #bdc3c7;
+    font-weight: 500;
+}
+
+/* Empty state message */
+.moves-list div[style*="italic"] {
+    color: #7f8c8d !important;
+    font-style: italic;
+    text-align: center;
+    padding: 20px 10px;
+}
+
+/* Overlay Styles */
+.mode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(44, 24, 16, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.mode-overlay .overlay-content {
+    background: #8B7355;
+    padding: 28px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 360px;
+    max-width: 900px;
+    border: 3px solid #2c1810;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.mode-overlay .overlay-content h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #2c1810;
+}
+
+.overlay-buttons {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+    margin-top: 14px;
+}
+
+.overlay-btn {
+    padding: 12px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 2px solid #2c1810;
+    background: #f0d9b5;
+    color: #2c1810;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.overlay-btn:hover {
+    background: #D2B48C;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-btn.large {
+    padding: 18px 26px;
+    font-size: 20px;
+}
+
+/* Difficulty Selector */
+.difficulty-content {
+    max-width: 1000px;
+}
+
+.difficulty-page {
+    min-height: 400px;
+}
+
+.difficulty-columns {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.difficulty-column {
+    flex: 1;
+}
+
+.difficulty-column h3 {
+    color: #2c1810;
+}
+
+.cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.difficulty-card {
+    cursor: pointer;
+    width: 140px;
+    padding: 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6B4423 0%, #8B6F47 100%);
+    border: 2px solid #2c1810;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    font-weight: 700;
+    color: #f0d9b5;
+    transition: all 0.3s ease;
+}
+
+.difficulty-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.difficulty-card .elo {
+    display: block;
+    font-size: 18px;
+    margin-top: 6px;
+    color: #D2B48C;
+    font-weight: bold;
+}
+
+.difficulty-card.selected {
+    outline: 4px solid #E67E22;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.difficulty-card .bot-icon {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 8px;
+    border: 2px solid #2c1810;
+}
+
+.difficulty-card .bot-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f0d9b5;
+    margin-bottom: 4px;
+}
+
+.difficulty-card.nnue-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-actions {
+    margin-top: 18px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.overlay-actions .overlay-btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+    .difficulty-columns {
+        flex-direction: column;
+    }
+    .mode-overlay .overlay-content {
+        margin: 20px;
+        width: auto;
+    }
+}

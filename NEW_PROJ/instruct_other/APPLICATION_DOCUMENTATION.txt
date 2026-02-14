@@ -1,0 +1,1245 @@
+================================================================================
+                    AI CHESS APPLICATION - COMPLETE DOCUMENTATION
+================================================================================
+
+This document provides an in-depth explanation of all files in the AI Chess
+application, their purposes, how they interact, and how to edit them.
+
+Created: 2025
+Author: Dylan Boles
+
+================================================================================
+                            TABLE OF CONTENTS
+================================================================================
+
+1. OVERALL ARCHITECTURE
+2. BACKEND FILES (Python/Flask)
+3. FRONTEND FILES (HTML/CSS/JavaScript)
+4. CONFIGURATION FILES
+5. DATA FLOW & COMMUNICATION
+6. HOW TO EDIT THE APPLICATION
+7. COMMON TASKS & MODIFICATIONS
+
+================================================================================
+                        1. OVERALL ARCHITECTURE
+================================================================================
+
+The application is a web-based chess game that uses:
+- Flask (Python) for the backend server
+- HTML/CSS/JavaScript for the frontend interface
+- Stockfish chess engine for AI moves
+- Chess library (python-chess) for game logic
+
+ARCHITECTURE LAYERS:
+-------------------
+┌─────────────────────────────────────────────────────────────┐
+│                    BROWSER (Frontend)                        │
+│  - HTML/CSS/JavaScript                                       │
+│  - User interface and interactions                           │
+└───────────────────────┬─────────────────────────────────────┘
+                        │ HTTP Requests/Responses
+                        │ (JSON data)
+┌───────────────────────▼─────────────────────────────────────┐
+│              FLASK SERVER (Backend)                          │
+│  - app.py: Main server with API endpoints                   │
+│  - config.py: Configuration settings                        │
+│  - Handles game state and engine communication              │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        │ Engine Commands
+┌───────────────────────▼─────────────────────────────────────┐
+│              STOCKFISH ENGINE                                │
+│  - Chess AI engine                                           │
+│  - Calculates best moves                                     │
+└─────────────────────────────────────────────────────────────┘
+
+GAME MODES:
+-----------
+1. User vs CPU: User plays white, Stockfish plays black
+2. CPU vs CPU: Two Stockfish engines play against each other
+
+================================================================================
+                    2. BACKEND FILES (Python/Flask)
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/app.py                                                          │
+│ PURPOSE: Main Flask server application with all API endpoints            │
+│ SIZE: ~633 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+STRUCTURE:
+----------
+- Global Variables (lines 21-32):
+  * board: chess.Board() - Current game state
+  * engine: Stockfish engine instance (for user_vs_cpu mode)
+  * game_active: Boolean flag for game state
+  * current_player: 'white' or 'black'
+  * game_mode: 'user_vs_cpu' or 'cpu_vs_cpu'
+  * engine_white, engine_black: Separate engines for CPU vs CPU mode
+  * white_elo, black_elo: ELO ratings for engines
+
+KEY FUNCTIONS:
+--------------
+1. initialize_engine() (lines 34-76)
+   - Finds and initializes Stockfish engine
+   - Tries multiple common paths (Linux, macOS, PATH)
+   - Configures engine with default ELO (1350)
+   - Returns True/False for success
+
+2. create_engine() (lines 78-99)
+   - Creates additional Stockfish engine instances
+   - Used for CPU vs CPU mode (needs 2 engines)
+   - Returns engine instance or None
+
+3. get_board_state() (lines 126-135)
+   - Converts chess.Board() to dictionary format
+   - Maps square names (e.g., 'e4') to piece symbols (e.g., 'K', 'Q')
+   - Returns: {'e4': 'K', 'd5': 'q', ...}
+
+4. is_valid_move() (lines 137-146)
+   - Validates if a move is legal
+   - Takes from_square, to_square, piece_code
+   - Returns True/False
+
+5. make_move() (lines 148-160)
+   - Executes a move on the board
+   - Validates move first
+   - Updates board state
+   - Returns True/False
+
+6. get_engine_move() (lines 162-200)
+   - Gets Stockfish's move
+   - Uses engine.play() with time limit
+   - Returns move dictionary with from/to/piece/san
+
+7. get_engine_for_turn() (lines 408-423)
+   - Determines which engine to use based on game mode and current player
+   - Returns engine_white, engine_black, or None
+
+API ENDPOINTS:
+-------------
+1. GET / (lines 202-208)
+   - Serves the main HTML page (index.html)
+   - Entry point for the web application
+
+2. GET /api/test (lines 210-220)
+   - Simple test endpoint
+   - Returns JSON with status message
+
+3. GET /api/pi-status (lines 222-242)
+   - Checks if engine is initialized
+   - Returns connection status
+   - Used by frontend to verify readiness
+
+4. POST /api/move (lines 245-303)
+   - Handles user moves
+   - Validates and executes move
+   - Returns updated board state and game status
+   - Request: {'from': 'e2', 'to': 'e4', 'piece': 'P'}
+   - Response: {'status': 'success', 'board_state': {...}, 'game_over': False}
+
+5. GET /api/board-state (lines 305-322)
+   - Returns current board state
+   - Used for syncing frontend with backend
+
+6. POST /api/engine-move (lines 324-405)
+   - Gets engine's move
+   - Determines correct engine based on game mode
+   - Executes move and returns result
+   - Response: {'status': 'success', 'engine_move': {...}, 'board_state': {...}}
+
+7. POST /api/set-game-mode (lines 101-150)
+   - Sets game mode (user_vs_cpu or cpu_vs_cpu)
+   - Creates engines as needed
+   - Configures ELO ratings
+   - Resets board to starting position
+   - Initializes current_player based on game mode
+   - Request: {'mode': 'cpu_vs_cpu', 'white_elo': 1500, 'black_elo': 1500}
+   - Response: {'status': 'success', 'mode': '...', 'white_elo': ..., 'black_elo': ..., 'board_state': {...}, 'current_player': 'white'}
+   - For user_vs_cpu: User plays white, engine_white = None, engine_black created
+   - For cpu_vs_cpu: Both engines created, current_player = 'white' (white starts)
+
+8. POST /api/set-bot-difficulty (lines 425-454)
+   - Sets engine difficulty (ELO and skill level)
+   - Reconfigures engine settings
+   - Resets board to starting position
+
+9. POST /api/game-control (lines 487-519)
+   - Handles game control commands
+   - Commands: 'reset', 'pause', 'resume'
+   - Resets board state or toggles game_active flag
+
+HOW TO EDIT:
+-----------
+- To add new API endpoint: Add @app.route() decorator with function
+- To change engine settings: Modify initialize_engine() or create_engine()
+- To add new game mode: Add mode check in get_engine_for_turn()
+- To change move validation: Modify is_valid_move() or make_move()
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/config.py                                                       │
+│ PURPOSE: Configuration settings for the Flask application               │
+│ SIZE: ~28 lines                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+CONTENTS:
+---------
+- FLASK_HOST: "0.0.0.0" (listen on all interfaces)
+- FLASK_PORT: 5001 (server port)
+- FLASK_DEBUG: True (enable debug mode)
+- game_mode: Default game mode
+- engine_white, engine_black: Engine instances (None initially)
+- white_elo, black_elo: Default ELO ratings (1350)
+- ENGINE_SKILL_LEVEL: 10 (0-20 range)
+- ENGINE_ELO_RATING: 1350 (target strength)
+- ENGINE_THINK_TIME: 2.0 (seconds)
+- ENGINE_TIMEOUT: 15 (seconds)
+
+HOW TO EDIT:
+-----------
+- Change port: Modify FLASK_PORT
+- Change default difficulty: Modify ENGINE_ELO_RATING or ENGINE_SKILL_LEVEL
+- Change engine think time: Modify ENGINE_THINK_TIME
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/chess_engine.py                                                │
+│ PURPOSE: (If exists) Additional chess engine utilities                   │
+│ NOTE: Currently minimal - most engine logic is in app.py                │
+└──────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: Board_apps/pi_chess_server.py                                      │
+│ PURPOSE: Raspberry Pi server (for distributed mode)                     │
+│ NOTE: Not used in standalone mode, but kept for compatibility           │
+└──────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                   3. FRONTEND FILES (HTML/CSS/JavaScript)
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/templates/index.html                                           │
+│ PURPOSE: Main HTML structure and layout                                  │
+│ SIZE: ~185 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+STRUCTURE:
+----------
+1. HEAD Section (lines 1-12):
+   - Meta tags and title
+   - CSS file imports (main.css, board.css, controls.css, moves.css)
+
+2. BODY Section (lines 13-183):
+   - Container div with main content
+   - Left Panel: Game controls and settings
+   - Center: Chess board (generated by JavaScript)
+   - Right Panel: Bot selector / Game moves display
+   - Status bar at bottom
+
+KEY ELEMENTS:
+-------------
+- Overlay System (lines 28-77):
+  * Mode Overlay: Initial overlay for selecting game mode
+    - "Play vs CPU" button (user_vs_cpu mode)
+    - "CPU vs CPU" button (cpu_vs_cpu mode)
+  * Difficulty Overlay: Second overlay for selecting ELO ratings
+    - Left column: White Engine difficulty (shown only in CPU vs CPU mode)
+    - Right column: CPU Engine difficulty (shown in both modes)
+    - Difficulty cards: 800, 1200, 1500, 2000, 2400, 2800 ELO options
+    - "Back" button: Returns to mode selection
+    - "Start Game" button: Starts the game with selected settings
+
+- Game Mode Selection (lines 28-37):
+  * OLD SYSTEM: Dropdown for user_vs_cpu or cpu_vs_cpu (may still exist)
+  * NEW SYSTEM: Overlay-based selection (primary method)
+
+- Difficulty Settings (lines 39-54):
+  * OLD SYSTEM: Input fields for ELO ratings (may still exist)
+  * NEW SYSTEM: Card-based selection in overlay (primary method)
+
+- Control Buttons (lines 56-86):
+  * Pause/Play buttons
+  * Previous/Next navigation buttons
+  * Reset button
+
+- Bot Selector (lines 94-158):
+  * Three difficulty categories (Beginner, Intermediate, Advanced)
+  * Bot options with ELO ratings
+  * "Start Game" button
+
+- Game Moves Panel (lines 160-166):
+  * Displays move history
+  * Shown after game starts
+
+- JavaScript Imports (lines 175-182):
+  * Load order matters! utils.js first, then others
+  * main.js loads last (initializes everything)
+
+OVERLAY SYSTEM:
+--------------
+The application uses a two-step overlay system for game initialization:
+
+1. Mode Selection Overlay (mode-overlay):
+   - First overlay shown when page loads
+   - User selects: "Play vs CPU" or "CPU vs CPU"
+   - Clicking a button shows the difficulty overlay
+
+2. Difficulty Selection Overlay (difficulty-overlay):
+   - Second overlay for selecting ELO ratings
+   - For user_vs_cpu: Shows only CPU difficulty (right column)
+   - For cpu_vs_cpu: Shows both White and Black engine difficulties
+   - User clicks difficulty cards to select ELO
+   - "Start Game" button initializes the game
+
+HOW TO EDIT:
+-----------
+- Add new UI element: Insert HTML in appropriate section
+- Change layout: Modify div structure and CSS classes
+- Add new button: Add button element with ID, connect to JavaScript
+- Modify overlay: Edit overlay HTML structure and JavaScript event listeners
+- Add new difficulty level: Add new difficulty-card div in overlay
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/main.js                                               │
+│ PURPOSE: Initialization and global variables                             │
+│ SIZE: ~242 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+GLOBAL VARIABLES (lines 17-27):
+-------------------------------
+- selectedPiece: Currently selected piece object
+- gameMoves: Array of all moves made
+- moveNumber: Current move number counter
+- isGamePaused: Boolean for pause state
+- currentMoveIndex: Index in board history (-1 = beginning)
+- boardHistory: Array of board states for navigation
+- gameSpeed: Game speed setting (10 G/sec default)
+- piConnected: Connection status flag
+- connectionCheckInterval: Interval ID for connection monitoring
+- currentGameMode: 'user_vs_cpu' or 'cpu_vs_cpu'
+- currentPlayer: 'white' or 'black'
+
+KEY FUNCTIONS:
+--------------
+1. DOMContentLoaded Event (lines 43-68):
+   - Initializes all components when page loads
+   - Sets up overlay system event listeners
+   - Sets up game mode UI logic (legacy system)
+   - Shows/hides difficulty settings based on mode
+
+2. Overlay System Event Listeners (lines 58-198):
+   - overlay-user-vs-cpu button: Sets chosenMode to 'user_vs_cpu'
+     * Shows only right column (CPU difficulty)
+     * Hides left column (White Engine)
+   - overlay-cpu-vs-cpu button: Sets chosenMode to 'cpu_vs_cpu'
+     * Shows both columns (White and Black Engine difficulties)
+   - difficulty-back-btn: Returns to mode selection overlay
+   - difficulty-start-btn: Starts the game with selected settings
+     * Builds payload with mode and ELO ratings
+     * Sends POST to /api/set-game-mode
+     * Initializes game state based on mode
+     * For CPU vs CPU: Automatically starts engine moves
+     * For User vs CPU: Waits for user to make first move
+
+3. set-game-mode-btn Event Listener (lines 88-119):
+   - OLD SYSTEM: Handles game mode selection via dropdown
+   - Sends POST to /api/set-game-mode
+   - Updates currentGameMode variable
+   - Shows success/error alerts
+
+3. checkPiConnection() (lines 130-151):
+   - Checks if engine is ready
+   - Calls /api/pi-status endpoint
+   - Updates piConnected flag
+   - Updates UI status message
+
+4. startConnectionMonitoring() (lines 169-172):
+   - Sets up interval to check connection every 10 seconds
+   - Calls checkPiConnection() repeatedly
+
+5. updateConnectionStatus() (lines 191-210):
+   - Updates status message in UI
+   - Shows green/red indicator
+   - Auto-restores original message after 2 seconds
+
+6. resetSelection() (lines 228-239):
+   - Clears selected piece
+   - Updates status message
+
+OVERLAY SYSTEM VARIABLES:
+------------------------
+- chosenMode: Currently selected game mode ('user_vs_cpu' or 'cpu_vs_cpu')
+- chosenWhiteElo: Selected ELO for white engine (CPU vs CPU mode)
+- chosenBlackElo: Selected ELO for black engine (both modes)
+
+OVERLAY SYSTEM FLOW:
+-------------------
+1. Page loads → mode-overlay shown
+2. User clicks "Play vs CPU" or "CPU vs CPU"
+   → Sets chosenMode
+   → Shows/hides difficulty columns
+   → Shows difficulty-overlay
+3. User selects difficulty cards
+   → Sets chosenWhiteElo and/or chosenBlackElo
+   → Enables "Start Game" button
+4. User clicks "Start Game"
+   → Sends POST to /api/set-game-mode
+   → Backend creates engines and resets board
+   → Frontend initializes game state
+   → Hides overlays, shows game board
+   → For CPU vs CPU: Automatically starts engine moves
+   → For User vs CPU: Waits for user move
+
+HOW TO EDIT:
+-----------
+- Add new global variable: Add to lines 17-27
+- Change connection check interval: Modify line 171 (10000 = 10 seconds)
+- Add new initialization: Add to DOMContentLoaded event handler
+- Modify overlay flow: Edit overlay event listeners (lines 58-198)
+- Add new difficulty option: Add difficulty-card div in HTML, update card listeners
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/board.js                                              │
+│ PURPOSE: Chess board creation and piece management                       │
+│ SIZE: ~548 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+KEY FUNCTIONS:
+--------------
+1. createChessBoard() (lines 24-58):
+   - Creates 8x8 grid of squares
+   - Assigns colors (white/black alternating)
+   - Sets data attributes (row, col, position)
+   - Adds click event listeners to each square
+
+2. setupPieces() (lines 76-97):
+   - Places pieces in starting positions
+   - Uses piece codes: 'wK' (white King), 'bQ' (black Queen), etc.
+   - Calls addPieceToSquare() for each piece
+
+3. addPieceToSquare() (lines 116-131):
+   - Adds piece to a square
+   - Clears existing content
+   - Adds CSS classes (piece, piece-wK, etc.)
+   - Sets data-piece attribute
+
+4. removePieceFromSquare() (lines 148-154):
+   - Removes piece from square
+   - Clears classes and data attributes
+
+5. handleSquareClick() (lines 157-191):
+   - Main click handler for board squares
+   - Checks game state, connection, pause status
+   - Handles piece selection and movement
+   - Prevents moves in CPU vs CPU mode
+
+6. selectPiece() (lines 210-220):
+   - Marks square as selected
+   - Stores piece information in selectedPiece
+   - Updates status message
+
+7. movePiece() (lines 239-303):
+   - Handles piece movement
+   - Sends move to backend via sendMoveToBackend()
+   - Updates board on success
+   - Triggers engine move if needed
+   - Records move in history
+
+8. sendMoveToBackend() (lines 322-344):
+   - Sends POST request to /api/move
+   - Includes from, to, piece, move_number
+   - Returns JSON response
+
+9. getEngineMove() (lines 361-421):
+   - Requests engine move from /api/engine-move
+   - Updates board with engine's move
+   - Records move in history
+   - Auto-triggers next move in CPU vs CPU mode
+
+10. updateBoardFromPiState() (lines 428-446):
+    - Updates entire board from backend state
+    - Clears all pieces first
+    - Places pieces based on board_state dictionary
+    - Converts piece symbols (K, Q) to piece codes (wK, bQ)
+
+11. convertPieceSymbolToCode() (lines 463-469):
+    - Converts FEN-style symbols to internal codes
+    - 'K' → 'wK', 'k' → 'bK', etc.
+
+12. applyEngineMove() (lines 486-499):
+    - Applies single move (when full state unavailable)
+    - Moves piece from one square to another
+
+13. resetGame() (lines 516-547):
+    - Resets game to starting position
+    - Calls /api/game-control with 'reset' command
+    - Returns to bot selector
+
+HOW TO EDIT:
+-----------
+- Change board size: Modify createChessBoard() (currently 8x8)
+- Change piece appearance: Modify addPieceToSquare() CSS classes
+- Add new piece type: Update piece codes and conversion functions
+- Change move validation: Modify handleSquareClick() or movePiece()
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/game.js                                               │
+│ PURPOSE: Game logic, move recording, and move display                     │
+│ SIZE: ~177 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+KEY FUNCTIONS:
+--------------
+1. getPieceNameFromCode() (lines 22-32):
+   - Converts piece code to human-readable name
+   - 'wK' → 'White King', 'bQ' → 'Black Queen'
+   - Used for logging and display
+
+2. getPieceSymbol() (lines 49-55):
+   - Converts piece code to Unicode symbol
+   - 'wK' → '♔', 'bQ' → '♛'
+   - Used in move display
+
+3. initializeMovesPanel() (lines 72-75):
+   - Sets up moves panel with default message
+   - Called when game starts
+
+4. recordMove() (lines 95-107):
+   - Records move in gameMoves array
+   - Creates move object with piece, from, to, moveNumber, isWhite
+   - Increments moveNumber
+   - Calls updateMovesDisplay()
+
+5. updateMovesDisplay() (lines 125-156):
+   - Updates moves panel with all recorded moves
+   - Groups moves by move number (white + black)
+   - Formats as: "1. ♔e2-e4 ♚e7-e5"
+   - Scrolls to bottom to show latest moves
+
+6. formatMove() (lines 173-176):
+   - Formats move for display
+   - Returns: "♔e2-e4" format
+
+HOW TO EDIT:
+-----------
+- Change move format: Modify formatMove() function
+- Add move annotations: Extend recordMove() to include comments
+- Change move grouping: Modify updateMovesDisplay() logic
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/controls.js                                           │
+│ PURPOSE: Control button functionality                                    │
+│ SIZE: ~169 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+KEY FUNCTIONS:
+--------------
+1. setupGameControls() (lines 23-57):
+   - Sets up event listeners for all control buttons
+   - Handles speed slider
+   - Saves initial board state
+
+2. pauseGame() (lines 74-94):
+   - Pauses the game
+   - Hides pause button, shows play button
+   - Disables board interaction
+   - Updates status message
+
+3. resumeGame() (lines 111-128):
+   - Resumes the game
+   - Shows pause button, hides play button
+   - Enables board interaction
+   - Resets to current game state
+
+4. updateGameControls() (lines 146-167):
+   - Synchronizes button states with game state
+   - Updates pause/play button visibility
+   - Updates board interactivity
+
+HOW TO EDIT:
+-----------
+- Add new control button: Add button in HTML, add event listener in setupGameControls()
+- Change pause behavior: Modify pauseGame() or resumeGame()
+- Change speed slider range: Modify HTML input range attributes
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/navigation.js                                         │
+│ PURPOSE: Move navigation and board history                                │
+│ SIZE: ~177 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+KEY FUNCTIONS:
+--------------
+1. saveBoardState() (lines 24-36):
+   - Saves current board state to boardHistory array
+   - Stores position and piece for each square
+   - Updates currentMoveIndex
+
+2. loadBoardState() (lines 55-78):
+   - Loads board state from history
+   - Clears current board
+   - Restores pieces from saved state
+   - Updates currentMoveIndex
+
+3. previousMove() (lines 96-102):
+   - Goes back one move in history
+   - Calls loadBoardState() with previous index
+   - Updates status message
+
+4. nextMove() (lines 121-127):
+   - Goes forward one move in history
+   - Calls loadBoardState() with next index
+   - Updates status message
+
+5. resetToCurrentGame() (lines 145-148):
+   - Returns to most recent board state
+   - Loads last item in boardHistory
+
+6. updateNavigationButtons() (lines 166-175):
+   - Enables/disables prev/next buttons
+   - Based on currentMoveIndex position
+
+HOW TO EDIT:
+-----------
+- Change history size: Modify how boardHistory is managed
+- Add undo/redo: Extend navigation functions
+- Change navigation behavior: Modify previousMove() or nextMove()
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/bot-selector.js                                       │
+│ PURPOSE: Bot selection and game initialization                            │
+│ SIZE: ~301 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+GLOBAL VARIABLES:
+-----------------
+- selectedBot: Currently selected bot object
+- gameStarted: Boolean flag for game state
+
+KEY FUNCTIONS:
+--------------
+1. initializeBotSelector() (lines 23-38):
+   - Sets up event listeners for bot options
+   - Connects "Start Game" button
+
+2. selectBot() (lines 54-72):
+   - Highlights selected bot
+   - Stores bot data (name, elo, skill)
+   - Shows selected bot info
+
+3. showSelectedBotInfo() (lines 88-96):
+   - Displays selected bot's name and ELO
+   - Shows "Start Game" button
+
+4. startGame() (lines 112-185):
+   - Main game start function
+   - Handles both user_vs_cpu and cpu_vs_cpu modes
+   - For user_vs_cpu: Requires bot selection, calls /api/set-bot-difficulty
+   - For cpu_vs_cpu: Calls startCpuVsCpuGame()
+   - Hides bot selector, shows moves panel
+   - Initializes game state
+
+5. startCpuVsCpuGame() (lines 201-245):
+   - Starts CPU vs CPU game
+   - Skips bot selection
+   - Sets up board and game state
+   - Automatically triggers first engine move
+
+6. resetToBotSelector() (lines 194-220):
+   - Returns to bot selection screen
+   - Resets game state variables
+   - Clears selections
+
+7. enableGameControls() / disableGameControls() (lines 236-264):
+   - Enables/disables control buttons
+   - Changes button opacity
+
+HOW TO EDIT:
+-----------
+- Add new bot difficulty: Add bot-option div in HTML with data-elo and data-skill
+- Change bot selection UI: Modify selectBot() or showSelectedBotInfo()
+- Add new game mode: Extend startGame() function
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/JS/utils.js                                              │
+│ PURPOSE: Utility functions and helpers                                   │
+│ SIZE: ~302 lines                                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+
+UTILITY FUNCTIONS:
+-----------------
+- formatTime(): Converts seconds to MM:SS format
+- generateId(): Creates random unique ID
+- deepClone(): Deep copies objects
+- isEmpty(): Checks if value is empty
+- debounce(): Prevents function from executing too frequently
+- throttle(): Limits function execution rate
+- getRandomElement(): Gets random array element
+- shuffleArray(): Shuffles array (Fisher-Yates)
+- isValidEmail(): Validates email format
+- formatNumber(): Formats numbers with commas
+- getCurrentTimestamp(): Gets ISO timestamp
+- getUrlParams(): Parses URL query parameters
+
+STORAGE HELPERS:
+---------------
+- storage.set(key, value): Saves to localStorage
+- storage.get(key, defaultValue): Reads from localStorage
+- storage.remove(key): Removes from localStorage
+
+HOW TO EDIT:
+-----------
+- Add new utility: Add function following existing patterns
+- Change storage behavior: Modify storage object methods
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/CSS/main.css                                             │
+│ PURPOSE: Base styles, layout, typography                                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Contains:
+- Container styles
+- Typography (fonts, sizes, colors)
+- Layout (flexbox, grid)
+- General component styles
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/CSS/board.css                                           │
+│ PURPOSE: Chess board specific styles                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Contains:
+- Square styles (white/black squares)
+- Piece styles and positioning
+- Selected square highlighting
+- Board grid layout
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/CSS/controls.css                                         │
+│ PURPOSE: Control button and panel styles                                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Contains:
+- Button styles (pause, play, reset, nav, overlay, game mode select)
+- Control panel layout
+- Button hover/active states
+- Icon and text styling
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: GUI/static/CSS/moves.css                                            │
+│ PURPOSE: Moves panel and bot selector styles                             │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Contains:
+- Moves list styling
+- Bot selector layout
+- Bot option cards
+- Move item formatting
+
+================================================================================
+                        4. CONFIGURATION FILES
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: runserver                                                           │
+│ PURPOSE: Bash script to start servers                                     │
+│ SIZE: 12 lines                                                           │
+└──────────────────────────────────────────────────────────────────────────┘
+
+CONTENTS:
+---------
+- Starts Raspberry Pi server via SSH (if using Pi mode)
+- Starts Flask GUI server
+- Waits for processes
+
+HOW TO USE:
+-----------
+```bash
+chmod +x runserver
+./runserver
+```
+
+HOW TO EDIT:
+-----------
+- Change Pi connection: Modify SSH command
+- Change server startup: Modify Python commands
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: README.md                                                           │
+│ PURPOSE: Project overview and quick start guide                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ FILE: SETUP_INSTRUCTIONS.md                                              │
+│ PURPOSE: Detailed setup instructions                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                     5. DATA FLOW & COMMUNICATION
+================================================================================
+
+USER MOVE FLOW:
+---------------
+1. User clicks piece on board
+   → board.js: handleSquareClick()
+   → board.js: selectPiece()
+
+2. User clicks destination square
+   → board.js: movePiece()
+   → board.js: sendMoveToBackend()
+   → POST /api/move (app.py: handle_move())
+
+3. Backend validates and executes move
+   → app.py: is_valid_move()
+   → app.py: make_move()
+   → Updates board state
+
+4. Backend returns response
+   → JSON: {'status': 'success', 'board_state': {...}, 'move_accepted': True}
+
+5. Frontend updates board
+   → board.js: updateBoardFromPiState()
+   → board.js: recordMove()
+   → game.js: updateMovesDisplay()
+
+6. Engine move triggered (if user_vs_cpu mode)
+   → board.js: getEngineMove()
+   → POST /api/engine-move (app.py: get_engine_move_endpoint())
+
+7. Engine calculates move
+   → app.py: get_engine_for_turn()
+   → engine.play(board, chess.engine.Limit(time=1.0))
+   → board.push(move)
+
+8. Engine move returned
+   → JSON: {'status': 'success', 'engine_move': {...}, 'board_state': {...}}
+
+9. Frontend updates board
+   → board.js: updateBoardFromPiState()
+   → board.js: recordMove()
+
+10. In CPU vs CPU mode, automatically triggers next move
+    → board.js: getEngineMove() (recursive)
+
+
+CPU VS CPU FLOW:
+---------------
+1. User clicks "Start CPU vs CPU Game"
+   → main.js: startCpuVsCpuGame()
+   → POST /api/set-game-mode (app.py: set_game_mode())
+   → Creates engine_white and engine_black
+
+2. Game starts automatically
+   → board.js: getEngineMove() (white's turn)
+   → POST /api/engine-move
+   → Engine white makes move
+
+3. Move returned, next move triggered
+   → board.js: getEngineMove() (black's turn)
+   → POST /api/engine-move
+   → Engine black makes move
+
+4. Continues until game over
+   → Loop between steps 2-3
+   → Game ends when checkmate/stalemate/draw
+
+
+DATA FORMATS:
+------------
+Piece Codes (Frontend):
+- 'wK', 'wQ', 'wR', 'wB', 'wN', 'wP' (white pieces)
+- 'bK', 'bQ', 'bR', 'bB', 'bN', 'bP' (black pieces)
+
+Piece Symbols (Backend):
+- 'K', 'Q', 'R', 'B', 'N', 'P' (white pieces, uppercase)
+- 'k', 'q', 'r', 'b', 'n', 'p' (black pieces, lowercase)
+
+Square Names:
+- Algebraic notation: 'e4', 'd5', 'a1', 'h8'
+- Format: file (a-h) + rank (1-8)
+
+Board State Format:
+```json
+{
+  "e4": "K",    // White King on e4
+  "d5": "q",    // Black Queen on d5
+  "a1": "R"     // White Rook on a1
+}
+```
+
+Move Format:
+```json
+{
+  "from": "e2",
+  "to": "e4",
+  "piece": "P",
+  "san": "e4"   // Standard Algebraic Notation
+}
+```
+
+================================================================================
+                    6. HOW TO EDIT THE APPLICATION
+================================================================================
+
+ADDING A NEW API ENDPOINT:
+--------------------------
+1. Open GUI/app.py
+2. Add new function with @app.route() decorator:
+   ```python
+   @app.route('/api/my-endpoint', methods=['POST'])
+   def my_endpoint():
+       data = request.get_json()
+       # Your logic here
+       return jsonify({'status': 'success', 'data': result})
+   ```
+3. Test with curl or Postman
+4. Add frontend call in appropriate JavaScript file
+
+
+ADDING A NEW UI BUTTON:
+----------------------
+1. Add button in GUI/templates/index.html:
+   ```html
+   <button id="my-button" class="control-btn">My Button</button>
+   ```
+2. Add event listener in appropriate JS file:
+   ```javascript
+   document.getElementById('my-button').addEventListener('click', function() {
+       // Your logic here
+   });
+   ```
+3. Style button in CSS file if needed
+
+
+CHANGING ENGINE DIFFICULTY:
+---------------------------
+1. Modify default in GUI/config.py:
+   ```python
+   ENGINE_ELO_RATING = 1500  # Change from 1350
+   ```
+2. Or modify engine configuration in app.py:
+   ```python
+   engine.configure({
+       "UCI_Elo": 2000  # Stronger engine
+   })
+   ```
+
+
+ADDING A NEW GAME MODE:
+----------------------
+1. Add mode option in index.html dropdown
+2. Add mode check in app.py: get_engine_for_turn()
+3. Add mode handling in main.js: set-game-mode-btn listener
+4. Add mode-specific logic in board.js: handleSquareClick()
+
+
+CHANGING BOARD APPEARANCE:
+--------------------------
+1. Modify CSS in GUI/static/CSS/board.css
+2. Change square colors, sizes, borders
+3. Modify piece images in GUI/static/images/pieces/
+
+
+ADDING MOVE VALIDATION:
+----------------------
+1. Modify is_valid_move() in app.py
+2. Add custom validation logic
+3. Return False for invalid moves
+4. Frontend will show error message
+
+
+CHANGING MOVE DISPLAY FORMAT:
+----------------------------
+1. Modify formatMove() in game.js
+2. Change how moves are displayed in updateMovesDisplay()
+3. Add annotations, comments, or different notation
+
+
+ADDING NEW BOT DIFFICULTY:
+-------------------------
+1. Add bot-option div in index.html:
+   ```html
+   <div class="bot-option" data-elo="2500" data-skill="20">
+       <div class="bot-name">ChessBot 2500</div>
+       <div class="bot-elo">2500 ELO</div>
+   </div>
+   ```
+2. Bot selector will automatically handle it
+
+
+MODIFYING CONNECTION CHECKING:
+------------------------------
+1. Change interval in main.js: startConnectionMonitoring()
+   ```javascript
+   connectionCheckInterval = setInterval(checkPiConnection, 5000); // 5 seconds
+   ```
+2. Modify checkPiConnection() to check different endpoint
+3. Change status message format in updateConnectionStatus()
+
+
+CHANGING GAME SPEED:
+-------------------
+1. Modify speed slider in index.html (min/max values)
+2. Change default in main.js: gameSpeed = 10
+3. Add speed-based delays in move execution if needed
+
+================================================================================
+                  7. COMMON TASKS & MODIFICATIONS
+================================================================================
+
+TASK: Change Server Port
+------------------------
+1. Edit GUI/config.py: FLASK_PORT = 5002
+2. Update any hardcoded port references
+3. Restart server
+
+
+TASK: Add Move Sound Effects
+----------------------------
+1. Add audio files to GUI/static/audio/
+2. Add audio element in index.html
+3. Play sound in board.js: movePiece() and getEngineMove()
+   ```javascript
+   const moveSound = new Audio('/static/audio/move.mp3');
+   moveSound.play();
+   ```
+
+
+TASK: Add Move Highlighting
+---------------------------
+1. Add CSS class for highlighted squares in board.css
+2. Track last move in board.js
+3. Add/remove highlight classes in updateBoardFromPiState()
+
+
+TASK: Add Game Timer
+-------------------
+1. Add timer display in index.html
+2. Start timer in bot-selector.js: startGame()
+3. Update timer in setInterval()
+4. Pause timer when game is paused
+
+
+TASK: Save Game to File
+----------------------
+1. Add endpoint in app.py: POST /api/save-game
+2. Export board state to PGN or FEN format
+3. Return file download or save to server
+
+
+TASK: Load Game from File
+------------------------
+1. Add file input in index.html
+2. Parse PGN/FEN in app.py
+3. Reconstruct board state
+4. Update frontend board
+
+
+TASK: Add Undo Move
+------------------
+1. Add undo button in index.html
+2. Implement in app.py: POST /api/undo-move
+   - Use board.pop() to undo last move
+3. Call from frontend and update board
+
+
+TASK: Add Move Suggestions
+-------------------------
+1. Add endpoint in app.py: POST /api/suggest-move
+2. Get engine analysis without making move
+3. Display suggestions in UI
+4. Allow user to accept/reject suggestions
+
+
+TASK: Change Piece Images
+------------------------
+1. Replace images in GUI/static/images/pieces/
+2. Update CSS in board.css to use new images
+3. Ensure naming matches piece codes
+
+
+TASK: Add Multiplayer Support
+----------------------------
+1. Add WebSocket support (Flask-SocketIO)
+2. Add room/player management
+3. Synchronize moves between clients
+4. Add turn-based logic
+
+
+TASK: Add Game History
+---------------------
+1. Create database or file storage
+2. Save games after completion
+3. Add history viewer in UI
+4. Allow replaying old games
+
+
+TASK: Add Analysis Mode
+----------------------
+1. Add analysis toggle in UI
+2. Get engine evaluation for current position
+3. Display best moves and evaluation score
+4. Show move tree or variations
+
+================================================================================
+                              DEBUGGING TIPS
+================================================================================
+
+1. CHECK BROWSER CONSOLE:
+   - Open Developer Tools (F12)
+   - Check Console tab for JavaScript errors
+   - Check Network tab for failed API calls
+
+2. CHECK SERVER LOGS:
+   - Flask prints errors to terminal
+   - Look for Python tracebacks
+   - Check for import errors
+
+3. VERIFY API ENDPOINTS:
+   - Test with curl:
+     ```bash
+     curl -X POST http://localhost:5001/api/test
+     ```
+   - Check response format matches frontend expectations
+
+4. CHECK ENGINE INITIALIZATION:
+   - Verify Stockfish is installed
+   - Check STOCKFISH_PATH environment variable
+   - Test engine manually in Python
+
+5. VERIFY GAME STATE:
+   - Add print statements in app.py
+   - Log board state before/after moves
+   - Check current_player variable
+
+6. CHECK CORS ISSUES:
+   - If accessing from different domain
+   - Add CORS headers in Flask
+   - Use flask-cors extension
+
+7. VERIFY DATA FORMATS:
+   - Ensure piece codes match between frontend/backend
+   - Check square name format (lowercase, e.g., 'e4')
+   - Verify JSON structure matches
+
+================================================================================
+                            FILE DEPENDENCIES
+================================================================================
+
+LOAD ORDER (JavaScript):
+-----------------------
+1. utils.js          (utility functions)
+2. board.js          (board creation - needs utils)
+3. game.js           (game logic - needs board)
+4. navigation.js     (navigation - needs board)
+5. controls.js        (controls - needs navigation)
+6. bot-selector.js   (bot selection - needs game)
+7. main.js           (initialization - needs all)
+
+IMPORT ORDER (Python):
+---------------------
+1. config.py         (configuration)
+2. chess, chess.engine (libraries)
+3. flask components  (Flask, jsonify, request)
+
+CSS LOAD ORDER:
+--------------
+1. main.css          (base styles)
+2. board.css        (board styles - may override main)
+3. controls.css     (control styles)
+4. moves.css        (moves panel styles)
+
+================================================================================
+                            KEY CONCEPTS
+================================================================================
+
+CHESS BOARD REPRESENTATION:
+--------------------------
+- Frontend: 8x8 grid of div elements with data attributes
+- Backend: chess.Board() object from python-chess library
+- Conversion: Square names (e4) ↔ Square indices (28) ↔ Piece symbols (K)
+
+GAME STATE MANAGEMENT:
+---------------------
+- Backend: Single chess.Board() object, updated with board.push(move)
+- Frontend: boardHistory array stores snapshots for navigation
+- Synchronization: Backend is source of truth, frontend syncs via API
+
+ENGINE COMMUNICATION:
+--------------------
+- Stockfish uses UCI (Universal Chess Interface) protocol
+- python-chess library handles UCI communication
+- Engine.play() sends position, gets best move
+- Engine.configure() sets difficulty/strength
+
+MOVE VALIDATION:
+---------------
+- Backend validates all moves using chess.Board().legal_moves
+- Frontend can show visual feedback but doesn't validate
+- Invalid moves return error, valid moves update board
+
+GAME MODES:
+----------
+- user_vs_cpu: User (white) vs Engine (black), engine_white = None
+  * User makes moves by clicking pieces
+  * Engine automatically responds after user moves
+  * current_player starts as 'white' (user's turn)
+  
+- cpu_vs_cpu: Engine (white) vs Engine (black), both engines active
+  * Both sides are CPU-controlled
+  * Moves are automatic, no user interaction
+  * current_player starts as 'white' (white engine's turn)
+  * User moves are blocked in this mode
+  
+- Mode determines which engine to use in get_engine_for_turn()
+- Mode is set via overlay system before game starts
+- current_player is initialized based on game mode in /api/set-game-mode
+
+================================================================================
+                            CONCLUSION
+================================================================================
+
+This application is a complete chess game with AI opponent support. The
+architecture separates concerns:
+
+- Backend (Python/Flask): Game logic, engine communication, API endpoints
+- Frontend (HTML/CSS/JS): User interface, board display, user interactions
+- Configuration: Settings and constants
+
+To edit the application:
+1. Identify which layer needs changes (backend/frontend/config)
+2. Locate the relevant file from this documentation
+3. Make changes following existing patterns
+4. Test thoroughly
+5. Check browser console and server logs for errors
+
+For questions or issues, refer to:
+- This documentation for file structure
+- Code comments for function details
+- Browser console for runtime errors
+- Server logs for backend issues
+
+Good luck editing!
+
+================================================================================
+                            END OF DOCUMENTATION
+================================================================================
+
+

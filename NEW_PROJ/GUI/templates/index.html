@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess GUI</title>
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/board.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/controls.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/moves.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>AI Chess Game</h1>
+        
+        <!-- OVERLAY 1: MODE SELECT -->
+        <div id="mode-overlay" class="mode-overlay" style="display:flex;">
+            <div class="overlay-content">
+                <h2>Select Game Mode</h2>
+                <div class="overlay-buttons">
+                    <button id="overlay-user-vs-cpu" class="overlay-btn large">Play vs CPU</button>
+                    <button id="overlay-cpu-vs-cpu" class="overlay-btn large">CPU vs CPU</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- OVERLAY 2: DIFFICULTY / PRO-PLAYER SELECT -->
+        <div id="difficulty-overlay" class="mode-overlay" style="display:none;">
+            <div class="overlay-content difficulty-content">
+                <h2 id="difficulty-title">Select Difficulty</h2>
+
+                <!-- Page 1: ELO Selections -->
+                <div id="difficulty-page-1" class="difficulty-page">
+                    <div id="difficulty-columns" class="difficulty-columns">
+                        <!-- Left column (used for white engine in CPU vs CPU) -->
+                        <div class="difficulty-column" id="left-difficulty-column" style="display:none;">
+                            <h3>White Engine</h3>
+                            <div class="cards" id="white-cards-elo">
+                                <div class="difficulty-card" data-elo="1350">♟️ Club Player<br><span class="elo">1350</span></div>
+                                <div class="difficulty-card" data-elo="1600">♟️ Club Player+<br><span class="elo">1600</span></div>
+                                <div class="difficulty-card" data-elo="1900">♟️ Intermediate<br><span class="elo">1900</span></div>
+                                <div class="difficulty-card" data-elo="2200">♟️ Advanced<br><span class="elo">2200</span></div>
+                                <div class="difficulty-card" data-elo="2600">♛ Master<br><span class="elo">2600</span></div>
+                                <div class="difficulty-card" data-elo="3000">🔥 Grandmaster<br><span class="elo">3000</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Right column (CPU engine) -->
+                        <div class="difficulty-column" id="right-difficulty-column">
+                            <h3 id="right-column-title">Black Engine</h3>
+                            <div class="cards" id="black-cards-elo">
+                                <div class="difficulty-card" data-elo="1350">♟️ Club Player<br><span class="elo">1350</span></div>
+                                <div class="difficulty-card" data-elo="1600">♟️ Club Player+<br><span class="elo">1600</span></div>
+                                <div class="difficulty-card" data-elo="1900">♟️ Intermediate<br><span class="elo">1900</span></div>
+                                <div class="difficulty-card" data-elo="2200">♟️ Advanced<br><span class="elo">2200</span></div>
+                                <div class="difficulty-card" data-elo="2600">♛ Master<br><span class="elo">2600</span></div>
+                                <div class="difficulty-card" data-elo="3000">🔥 Grandmaster<br><span class="elo">3000</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page 2: Model Selections -->
+                <div id="difficulty-page-2" class="difficulty-page" style="display:none;">
+                    <div id="difficulty-columns-models" class="difficulty-columns">
+                        <!-- Left column (used for white engine in CPU vs CPU) -->
+                        <div class="difficulty-column" id="left-difficulty-column-models" style="display:none;">
+                            <h3>White Engine</h3>
+                            <div class="cards" id="white-cards-models">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="carlsen" data-elo="2850">
+                                    <img src="{{ url_for('static', filename='images/icons/Magnus_Carlsen_New.png') }}" alt="Magnus Carlson" class="bot-icon">
+                                    <div class="bot-name">Magnus Carlson Bot</div>
+                                    <span class="elo">2882</span>
+                                </div>
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="fischer" data-elo="2850">
+                                    <img src="{{ url_for('static', filename='images/icons/bobby_fischer_new.png') }}" alt="Bobby Fischer" class="bot-icon">
+                                    <div class="bot-name">Bobby Fischer Bot</div>
+                                    <span class="elo">2785</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="yifan" data-elo="2596">
+                                    <img src="{{ url_for('static', filename='images/icons/hou_yifan.png') }}" alt="Hou Yifan" class="bot-icon">
+                                    <div class="bot-name">Hou Yifan Bot</div>
+                                    <span class="elo">2596</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="spassky" data-elo="2670">
+                                    <img src="{{ url_for('static', filename='images/icons/boris_spassky.png') }}" alt="Boris Spassky" class="bot-icon">
+                                    <div class="bot-name">Boris Spassky Bot</div>
+                                    <span class="elo">2670</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="nakamura" data-elo="2810">
+                                    <img src="{{ url_for('static', filename='images/icons/nakamura.png') }}" alt="Hikaru Nakamura" class="bot-icon">
+                                    <div class="bot-name">Hikaru Nakamura Bot</div>
+                                    <span class="elo">2810</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="krush" data-elo="2402">
+                                    <img src="{{ url_for('static', filename='images/icons/krush.png') }}" alt="Irina Krush" class="bot-icon">
+                                    <div class="bot-name">Irina Krush Bot</div>
+                                    <span class="elo">2402</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="polgar" data-elo="2735">
+                                    <img src="{{ url_for('static', filename='images/icons/judit_polgar.png') }}" alt="Judit Polgar" class="bot-icon">
+                                    <div class="bot-name">Judit Polgar Bot</div>
+                                    <span class="elo">2735</span>
+				</div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="anand" data-elo="2817">
+                                    <img src="{{ url_for('static', filename='images/icons/viswanathan_anand.png') }}" alt="Viswanathan Anand" class="bot-icon">
+                                    <div class="bot-name">Viswanathan Anand Bot</div>
+                                    <span class="elo">2817</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right column (CPU engine) -->
+                        <div class="difficulty-column" id="right-difficulty-column-models">
+                            <h3 id="right-column-title-models">Black Engine</h3>
+                            <div class="cards" id="black-cards-models">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="carlsen" data-elo="2850">
+                                    <img src="{{ url_for('static', filename='images/icons/Magnus_Carlsen_New.png') }}" alt="Magnus Carlson" class="bot-icon">
+                                    <div class="bot-name">Magnus Carlson Bot</div>
+                                    <span class="elo">2882</span>
+                                </div>
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="fischer" data-elo="2785">
+                                    <img src="{{ url_for('static', filename='images/icons/bobby_fischer_new.png') }}" alt="Bobby Fischer" class="bot-icon">
+                                    <div class="bot-name">Bobby Fischer Bot</div>
+                                    <span class="elo">2785</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="yifan" data-elo="2596">
+				  <img src="{{ url_for('static', filename='images/icons/hou_yifan.png') }}" alt="Hou Yifan" class="bot-icon">
+                                    <div class="bot-name">Hou Yifan Bot</div>
+                                    <span class="elo">2596</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="spassky" data-elo="2670">
+                                    <img src="{{ url_for('static', filename='images/icons/boris_spassky.png') }}" alt="Boris Spassky" class="bot-icon">
+                                    <div class="bot-name">Boris Spassky Bot</div>
+                                    <span class="elo">2670</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="nakamura" data-elo="2810">
+                                    <img src="{{ url_for('static', filename='images/icons/nakamura.png') }}" alt="Hikaru Nakamura" class="bot-icon">
+                                    <div class="bot-name">Hikaru Nakamura Bot</div>
+                                    <span class="elo">2810</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="krush" data-elo="2402">
+                                    <img src="{{ url_for('static', filename='images/icons/krush.png') }}" alt="Irina Krush" class="bot-icon">
+                                    <div class="bot-name">Irina Krush Bot</div>
+                                    <span class="elo">2402</span>
+                                </div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="polgar" data-elo="2735">
+                                    <img src="{{ url_for('static', filename='images/icons/judit_polgar.png') }}" alt="Judit Polgar" class="bot-icon">
+                                    <div class="bot-name">Judit Polgar Bot</div>
+                                    <span class="elo">2735</span>
+				</div>
+				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="anand" data-elo="2817">
+                                    <img src="{{ url_for('static', filename='images/icons/viswanathan_anand.png') }}" alt="Viswanathan Anand" class="bot-icon">
+                                    <div class="bot-name">Viswanathan Anand Bot</div>
+                                    <span class="elo">2817</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overlay-actions">
+                    <button id="difficulty-back-btn" class="overlay-btn">Back</button>
+                    <button id="difficulty-prev-page-btn" class="overlay-btn" style="display:none;">Previous</button>
+                    <button id="difficulty-next-page-btn" class="overlay-btn">Next</button>
+                    <button id="difficulty-start-btn" class="overlay-btn" disabled>Start Game</button>
+                </div>
+            </div>
+        </div>
+	<div class="main-content">
+            
+          <div class="middle-column">
+            <div class="controls-block">
+              <div class="game-speed-panel">
+                <div class="speed-display">
+                  <span id="speed-value">10</span> G/sec
+                </div>
+                <div class="speed-label">Game Speed</div>
+                <input type="range" id="speed-slider" class="speed-slider" min="1" max="20" value="10">
+                <div class="speed-warning">Must be &lt;10 g/sec to see chessboard</div>
+              </div>
+	      
+              <div class="control-buttons">
+                <div class="control-row">
+                  <button id="pause-btn" class="control-btn pause-btn">
+                    <div class="button-icon">⏸</div>
+                    <div class="button-text">Pause</div>
+                  </button>
+                  <button id="play-btn" class="control-btn play-btn" style="display: none;">
+                    <div class="button-icon">▶</div>
+                    <div class="button-text">Play</div>
+                  </button>
+                </div>
+                <div class="control-row navigation-buttons">
+                  <button id="prev-btn" class="control-btn nav-btn">
+                    <div class="button-icon">«</div>
+                    <div class="button-text">Prev</div>
+                  </button>
+                  <button id="next-btn" class="control-btn nav-btn">
+                    <div class="button-icon">»</div>
+                    <div class="button-text">Next</div>
+                  </button>
+                </div>
+                <div class="control-row">
+                  <button id="reset-btn" class="control-btn reset-btn">
+                    <div class="button-icon">🔄</div>
+                    <div class="button-text">Reset</div>
+                  </button>
+                </div>
+                <div class="control-row">
+                  <button id="interrupt-btn" class="control-btn interrupt-btn">
+                    <div class="button-icon">⏹</div>
+                    <div class="button-text">Interrupt</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="board-column">
+            <div class="chess-board-container">
+              <div class="chess-board" id="chessboard"></div>
+            </div>
+            
+            <div class="player-info" id="player-info">
+              <div class="player-info-content">
+                <div class="player-side">
+                  <div class="player-label">White</div>
+                  <div class="player-name" id="white-player-name">-</div>
+                  <div class="player-score" id="white-player-wins">Wins: 0</div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="player-side">
+                  <div class="player-label">Black</div>
+                  <div class="player-name" id="black-player-name">-</div>
+                  <div class="player-score" id="black-player-wins">Wins: 0</div>
+                </div>
+              </div>
+            </div>
+	    <!-- WDL Probability Bar - separate from player-info -->
+	    <div class="wdl-probability" id="wdl-probability">
+	      <div class="wdl-container">
+		<div class="wdl-label">Win Probability</div>
+		<div class="wdl-bar">
+		  <div class="wdl-white" id="wdl-white-bar" style="width: 50%;">
+		    <span class="wdl-percentage" id="wdl-white-text">50%</span>
+		  </div>
+		  <div class="wdl-draw" id="wdl-draw-bar" style="width: 0%;">
+		    <span class="wdl-percentage" id="wdl-draw-text"></span>
+		  </div>
+		  <div class="wdl-black" id="wdl-black-bar" style="width: 50%;">
+		    <span class="wdl-percentage" id="wdl-black-text">50%</span>
+		  </div>
+		</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="game-moves" id="game-moves">
+            <h3>Game Moves</h3>
+            <div class="moves-list" id="moves-list">
+              <div style="text-align: center; color: #888; font-style: italic;">No moves yet</div>
+            </div>
+          </div>
+	</div>
+	
+        <Div class="status">
+            <p id="click-status">Select game mode to start playing</p>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="{{ url_for('static', filename='JS/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/board.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/game.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/navigation.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/controls.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/bot-selector.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/player-info-addon.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='JS/wdl-probability.js') }}"></script>
+</body>
+</html>

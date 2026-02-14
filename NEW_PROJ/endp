@@ -1,0 +1,11 @@
+#!/bin/bash
+
+echo "Stopping servers..."
+
+# End flask server on Laptop
+pkill -f "app.py"
+
+# End flask server on PI
+ssh pi@pi5-chess.local "pkill -f pi_chess_server.py"
+
+echo "All processes stopped successfully."
