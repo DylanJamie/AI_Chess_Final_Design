@@ -88,11 +88,11 @@ class RingLed:
                 time.sleep(delay)
         self.pixels.brightness = original_brightness  # RESTORE
 
-    def _breath(self, delay = 0.0001, duration = 3, steps = 1000, min_brightness = 1, max_brightness = 255, color = None ):
+    def _breath(self, delay = 0.005, duration = 3, steps = 1000, min_brightness = 1, max_brightness = 255, color = None ):
         original_brightness = self.pixels.brightness
         start_time = time.time()
         t = 0
-        while time.time() - start_time < duration:
+        while t < duration * 2 * math.pi and not stop_event.is_set():
             # Sin wave: 0 → 1 → 0
             for index in range(num_pixels):
                 breathe = (math.sin(0.1*t) + 1) / 2
@@ -132,7 +132,7 @@ class RingLed:
         self._spin(color = ORANGE, trail_length = 23)
         return()
     def thinking(self):
-        self._breath(duration = 10, delay = 0.001, min_brightness = 40)
+        self._breath(stop_event, duration = 2, delay = 0.001, min_brightness = 40)
         return()
 
 

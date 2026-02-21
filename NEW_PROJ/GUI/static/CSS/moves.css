@@ -11,7 +11,7 @@ file: /AI_Chess_Senior_Design/GUI/static/CSS/moves.css
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     padding: 12px;
-    height: 650px;
+    height: 560px;
     max-width: 200px;
     min-width: 180px;
     overflow-y: auto;
