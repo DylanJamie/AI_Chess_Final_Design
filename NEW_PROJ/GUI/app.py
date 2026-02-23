@@ -533,7 +533,7 @@ def handle_move():
         result = send_move_to_pi('black', from_square, to_square, piece)
 
         # Mirror the move to the White pi so LED and LCD can flick on/off
-        send_move_to_pi('white', from_square, to_square, piece)
+        # send_move_to_pi('white', from_square, to_square, piece)
         
         if result.get('status') == 'success' and result.get('move_accepted'):
             current_player = result.get('current_player', 'black')
