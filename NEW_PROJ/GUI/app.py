@@ -467,6 +467,10 @@ def set_game_mode():
                 "message": "Failed to initialize Black Pi. Check connection."
             }), 500
         print("Black Pi initialized successfully")
+
+        # Initialize White pi as a dummy to the users actions
+        print(f"Using White Pi as Visualizer...")
+        initialize_pi_engine('white', white_elo, 10, False)
         
     elif mode == GAME_MODES['cpu_vs_cpu']:
         # Need both Pis
@@ -527,6 +531,9 @@ def handle_move():
         
         # Send move to black Pi (it maintains the board state)
         result = send_move_to_pi('black', from_square, to_square, piece)
+
+        # Mirror the move to the White pi so LED and LCD can flick on/off
+        send_move_to_pi('white', from_square, to_square, piece)
         
         if result.get('status') == 'success' and result.get('move_accepted'):
             current_player = result.get('current_player', 'black')
@@ -593,21 +600,23 @@ def get_engine_move_endpoint():
             wdl_data = result.get('wdl')
 
             # 1. Sync the move to the other Pi FIRST (even if it's game over)
-            if engine_move and current_game_mode == GAME_MODES['cpu_vs_cpu']:
-                # Your if/else block for colors
-                if pi_color == 'white':
-                    other_color = 'black'
-                else:
-                    other_color = 'white'
-                
+            if engine_move:
+                # User vs CPU, tell white pi what black pi just did
+                if current_game_mode == GAME_MODES['user_vs_cpu'] and pi_color == 'black':
+                    print("Syncign CPU move to white PI to mimic Player actions...")
+                    send_move_to_pi('white', engine_move['from'], engine_move['to'], engine_move['piece'])
+
+                # In CPU vs CPU, keep the standard sync so they stay in step
+                elif current_game_mode == GAME_MODES['cpu_vs_cpu']:
+                    # Your if/else block for colors
+                    if pi_color == 'white':
+                        other_color = 'black'
+                    else:
+                        other_color = 'white'
                 print(f"Syncing move to {other_color} PI...")
-                send_move_to_pi(
-                    other_color,
-                    engine_move.get('from'),
-                    engine_move.get('to'),
-                    engine_move.get('piece')
-                )
-            
+                send_move_to_pi(other_pi, engine_move['from'], engine_move['to'], engine_move['piece'])
+
+                
             # NOW check for game over to return to the GUI
             if game_over:
                 print(f"Game finished. Winner: {result.get('winner')}")
