@@ -301,6 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Start game based on mode
                 if (chosenMode === 'cpu_vs_cpu') {
+                    autorestart = true; // Ensure auto-restart is active for CPU vs CPU
                     // CPU vs CPU: Start automatic play
                     document.getElementById('click-status').textContent = 
                         `CPU vs CPU game started! White: ${chosenWhiteElo} ELO, Black: ${chosenBlackElo} ELO`;
@@ -324,6 +325,159 @@ document.addEventListener('DOMContentLoaded', function() {
             difficultyOverlay.style.display = 'flex';
         }
     });
+
+    // -----------------------------------------------------------------------
+    // INTERRUPT BUTTON — stops CPU vs CPU loop and returns to mode select
+    // -----------------------------------------------------------------------
+    const interruptBtn = document.getElementById('interrupt-btn');
+    if (interruptBtn) {
+        interruptBtn.addEventListener('click', async () => {
+            if (currentGameMode !== 'cpu_vs_cpu') return;
+
+            console.log('Interrupt requested — stopping CPU vs CPU loop');
+            interruptRequested = true;
+
+            // Stop the running CPU loop timeout
+            if (cpuMoveTimeout) {
+                clearTimeout(cpuMoveTimeout);
+                cpuMoveTimeout = null;
+            }
+
+            // Reset scores and game state
+            gameScore.white = 0;
+            gameScore.black = 0;
+            gameScore.draws = 0;
+            if (typeof updateScoreUI === 'function') updateScoreUI();
+
+            // Reset backend
+            try {
+                await fetch('/api/game-control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'reset' })
+                });
+            } catch (err) {
+                console.error('Interrupt reset error:', err);
+            }
+
+            // Reset frontend
+            setupPieces();
+            gameMoves = [];
+            boardHistory = [];
+            moveNumber = 1;
+            if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
+            gameStarted = false;
+            isGamePaused  = false;
+            currentPlayer = 'white';
+            autorestart   = false; // Disable autorestart so resetGame won't loop again
+            initializeMovesPanel();
+            interruptRequested = false;
+
+            // Return to mode-select overlay
+            modeOverlay.style.display = 'flex';
+            difficultyOverlay.style.display = 'none';
+            document.getElementById('click-status').textContent = 'Select game mode to start playing';
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    // OVERLAY 3: GAME-OVER button handlers (Player vs CPU only)
+    // -----------------------------------------------------------------------
+    const gameOverOverlay      = document.getElementById('game-over-overlay');
+    const continuePlayingBtn   = document.getElementById('continue-playing-btn');
+    const newOpponentBtn       = document.getElementById('new-opponent-btn');
+
+    if (continuePlayingBtn) {
+        continuePlayingBtn.addEventListener('click', async () => {
+            // Hide the overlay immediately so the user sees the board reset
+            gameOverOverlay.style.display = 'none';
+
+            // Update the score UI (score was already incremented in handleGameEnd)
+            if (typeof updateScoreUI === 'function') updateScoreUI();
+
+            // Reset the backend + board, then start a fresh game automatically
+            try {
+                const response = await fetch('/api/game-control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'reset' })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    // Reset frontend state
+                    setupPieces();
+                    gameMoves = [];
+                    boardHistory = [];
+                    moveNumber = 1;
+                    if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
+                    saveBoardState();
+                    initializeMovesPanel();
+
+                    // Un-pause and restart
+                    gameStarted = true;
+                    isGamePaused = false;
+                    currentPlayer = 'white';
+
+                    document.getElementById('click-status').textContent =
+                        'New game started! You are White. Make your move!';
+                } else {
+                    console.error('Reset failed:', result.message);
+                    document.getElementById('click-status').textContent =
+                        'Reset failed — please try again.';
+                }
+            } catch (err) {
+                console.error('Continue playing error:', err);
+                document.getElementById('click-status').textContent =
+                    'Connection error during reset. Please refresh.';
+            }
+        });
+    }
+
+    if (newOpponentBtn) {
+        newOpponentBtn.addEventListener('click', async () => {
+            gameOverOverlay.style.display = 'none';
+
+            // Reset scores completely
+            gameScore.white  = 0;
+            gameScore.black  = 0;
+            gameScore.draws  = 0;
+            if (typeof updateScoreUI === 'function') updateScoreUI();
+
+            // Stop any running CPU loop
+            if (cpuMoveTimeout) {
+                clearTimeout(cpuMoveTimeout);
+                cpuMoveTimeout = null;
+            }
+
+            // Reset backend
+            try {
+                await fetch('/api/game-control', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: 'reset' })
+                });
+            } catch (err) {
+                console.error('Reset error on new opponent:', err);
+            }
+
+            // Reset frontend board
+            setupPieces();
+            gameMoves = [];
+            boardHistory = [];
+            moveNumber = 1;
+            if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
+            gameStarted = false;
+            isGamePaused = false;
+            currentPlayer = 'white';
+            initializeMovesPanel();
+
+            // Return to mode-select overlay
+            modeOverlay.style.display = 'flex';
+            difficultyOverlay.style.display = 'none';
+            document.getElementById('click-status').textContent = 'Select game mode to start playing';
+        });
+    }
 
     // Game mode UI logic
     const gameModeSelect = document.getElementById("game-mode");

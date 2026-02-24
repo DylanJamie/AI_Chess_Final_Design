@@ -11,9 +11,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/moves.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>AI Chess Game</h1>
-        
+    <div class="container">        
         <!-- OVERLAY 1: MODE SELECT -->
         <div id="mode-overlay" class="mode-overlay" style="display:flex;">
             <div class="overlay-content">
@@ -168,6 +166,19 @@
                 </div>
             </div>
         </div>
+
+	<!-- OVERLAY 3: GAME OVER OVERLAY -->
+	<div id="game-over-overlay" class="mode-overlay" style="display:none;">
+	  <div class="overlay-content">
+            <h2 id="game-over-title">Game Over!</h2>
+            <p id="game-over-message"></p>
+            <div class="overlay-buttons">
+              <button id="continue-playing-btn" class="overlay-btn large">Continue Playing</button>
+              <button id="new-opponent-btn" class="overlay-btn large">Pick New Opponent</button>
+            </div>
+	  </div>
+	</div>
+
 	<div class="main-content">
             
           <div class="middle-column">

@@ -553,10 +553,19 @@ function handleGameEnd(winner, shouldPause = true) {
         scorePanel.style.display = 'block';
     }
     
-    // Display game over message
+    // Display game over message in status bar
     document.getElementById('click-status').textContent = 
         `Game Over! Winner: ${winner || 'Draw'}`;
     
+    // In user_vs_cpu mode, show the game-over overlay instead of just pausing
+    if (currentGameMode === 'user_vs_cpu') {
+        isGamePaused = true;
+        updateGameControls();
+        showGameOverOverlay(winner);
+        console.log(`Game ended. Winner: ${winner}. Current score - White: ${gameScore.white}, Black: ${gameScore.black}, Draws: ${gameScore.draws}`);
+        return;
+    }
+
     // Only pause if requested (don't pause in CPU vs CPU auto-restart mode)
     if (shouldPause) {
         isGamePaused = true;
@@ -564,6 +573,42 @@ function handleGameEnd(winner, shouldPause = true) {
     }
     
     console.log(`Game ended. Winner: ${winner}. Current score - White: ${gameScore.white}, Black: ${gameScore.black}, Draws: ${gameScore.draws}`);
+}
+
+//------------------------------------------------------------------------------
+//
+// function: showGameOverOverlay
+//
+// arguments:
+//  winner: string ('white', 'black', or 'draw')
+//
+// returns:
+//  nothing
+//
+// description:
+//  Displays the game-over overlay with the result message for Player vs CPU mode.
+//
+//------------------------------------------------------------------------------
+
+function showGameOverOverlay(winner) {
+    const overlay = document.getElementById('game-over-overlay');
+    const title   = document.getElementById('game-over-title');
+    const message = document.getElementById('game-over-message');
+
+    // Build a human-readable result string
+    let resultText = '';
+    if (winner === 'white') {
+        resultText = '⬜ White wins!';
+    } else if (winner === 'black') {
+        resultText = '⬛ Black wins!';
+    } else {
+        resultText = "It's a Draw!";
+    }
+
+    title.textContent   = 'Game Over';
+    message.textContent = `${resultText}  |  Score — White: ${gameScore.white}  Black: ${gameScore.black}  Draws: ${gameScore.draws}`;
+
+    overlay.style.display = 'flex';
 }
 
 //------------------------------------------------------------------------------
