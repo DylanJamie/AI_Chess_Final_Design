@@ -4,24 +4,6 @@ Date: 02/02/2026
 file: /AI_Chess_Senior_Design/GUI/static/CSS/controls.css
 */
 
-/* /\* Left Panel - Game Speed Only *\/ */
-/* .left-panel { */
-/*     width: 200px; */
-/*     display: flex; */
-/*     flex-direction: column; */
-/*     gap: 20px; */
-/*     flex-shrink: 0; */
-/* } */
-
-/* /\* Right Panel - Controls, Score, and Moves *\/ */
-/* .right-panel { */
-/*     width: 320px; */
-/*     display: flex; */
-/*     flex-direction: column; */
-/*     gap: 15px; */
-/*     flex-shrink: 0; */
-/* } */
-
 /* In controls.css, find and update these */
 .left-panel, .right-panel, .middle-column {
     width: 100%;
@@ -46,6 +28,7 @@ file: /AI_Chess_Senior_Design/GUI/static/CSS/controls.css
     display: flex;
     flex-direction: column;
     gap: 16px;
+    height: 560zpx;
 }
 
 /* Game Speed Panel (inside controls block, no extra box) */

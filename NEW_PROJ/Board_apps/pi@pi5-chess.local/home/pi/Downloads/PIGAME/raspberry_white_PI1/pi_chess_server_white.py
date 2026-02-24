@@ -13,7 +13,6 @@ from flask import Flask, request, jsonify
 import json
 import time
 import os
-from hardware_controller import ChessHardware
 # from LED_Program import RingLed
 # from lcd_animation import LCD
 
@@ -40,7 +39,6 @@ ANAND_NNUE_PATH = os.path.join(NNUE_BASE_DIR, 'anand.nnue')
 # Create Class objects
 # display_lcd = LCD()
 # display_LED = RingLed()
-hardware = ChessHardware()
 
 def initialize_engine():
     """Initialize the Stockfish chess engine"""
@@ -53,7 +51,6 @@ def initialize_engine():
             "UCI_Elo": 1350
         })
         print("Chess engine initialized successfully")
-        hardware.start_animation("thinking")
         return True
     except Exception as e:
         print(f"Failed to initialize chess engine: {e}")
@@ -113,17 +110,9 @@ def get_engine_move(game_speed=10):
         
     if board.is_game_over():
         print("Game is over, cannot get engine move")
-        if board.is_checkmate():
-            print("Checkmate detected! Starting victory animation.")
-            hardware.start_animation("win")
-        else:
-            print("Draw detected.")
-            hardware.start_animation("draw")
-            return None
+        return None
+    
     try:
-        # Start thinking animaiton on LED and lcd screen
-        hardware.start_animation("thinking")
-        
         # print(f"Getting engine move. Board FEN: {board.fen()}")
         legal_moves_list = list(board.legal_moves)
         # print(f"Legal moves count: {len(legal_moves_list)}")
@@ -185,9 +174,6 @@ def get_engine_move(game_speed=10):
         global current_player
         current_player = 'black' if current_player == 'white' else 'white'
         print(f"Engine move applied: {move} ({san_notation})")
-
-        # Stop the animation on LCD
-        hardware.stop_all()
         
         return {
             'from': chess.square_name(move.from_square),
@@ -285,10 +271,11 @@ def handle_move():
                 result = board.result()
                 if result == '1-0':
                     winner = 'white'
-                    # if current_player == 'white': # If THIS Pi is white
-                    #     hardware.start_animation("win")
-                    # else:
-                    #     hardware.start_animation("lose")
+                    # with open("LED_mode.txt", 'w') as f:
+                    #     f.write("win")
+                    # time.sleep(5)
+                    # display_LED.game_win()
+                    # display_LCD.show_victory()
                 elif result == '0-1':
                     winner = 'black' 
                     # with open("LED_mode.txt", 'w') as f:
@@ -619,33 +606,6 @@ def cleanup():
         engine.quit()
         print("Chess engine closed")
 
-@app.route('/update_board', methods=['POST'])
-def update_board():
-    global board
-    data = request.get_json()
-    fen = data.get('fen')
-
-    if fen:
-        board.set_fen(fen)
-        
-        if board.is_game_over():
-            # ONLY start the animation if one isn't already playing
-            # This prevents the "Engine Move" and "GUI Update" from fighting
-            if not hardware.is_animating():
-                if board.is_checkmate():
-                    hardware.start_animation("win")
-                else:
-                    hardware.start_animation("draw")
-            
-            return jsonify({'status': 'success', 'message': 'Game Over detected'})
-
-        # Only stop animations if it's NOT a game over state
-        # (This prevents the 'thinking' animation from being cleared too early)
-        if not hardware.is_animating():
-             hardware.stop_all()
-             
-        return jsonify({'status': 'success'})
-        
 if __name__ == '__main__':
     print("="*60)
     print("Starting Raspberry Pi Chess Server (Simplified)")

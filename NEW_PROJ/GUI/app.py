@@ -586,37 +586,41 @@ def get_engine_move_endpoint():
         
         # Get move from appropriate Pi
         result = get_engine_move_from_pi(pi_color, game_speed)
-        
+
         if result.get('status') == 'success':
             engine_move = result.get('engine_move')
-
+            game_over = result.get('game_over') 
             wdl_data = result.get('wdl')
 
-            # If the Pi reports the game is over (checkmate / stalemate / draw),
-            # do NOT try to sync a move (engine_move may be None). Just return
-            # the result so the frontend can handle end-of-game logic.
-            if result.get('game_over'):
-                print(f"Pi reports game over. Winner: {result.get('winner')}")
-                return jsonify(result)
+            # 1. Sync the move to the other Pi FIRST (even if it's game over)
+            if engine_move and current_game_mode == GAME_MODES['cpu_vs_cpu']:
+                # Your if/else block for colors
+                if pi_color == 'white':
+                    other_color = 'black'
+                else:
+                    other_color = 'white'
+                
+                print(f"Syncing move to {other_color} PI...")
+                send_move_to_pi(
+                    other_color,
+                    engine_move.get('from'),
+                    engine_move.get('to'),
+                    engine_move.get('piece')
+                )
             
-            # Normal move path
-            if engine_move:
-                # In CPU vs CPU mode, we need to sync the move to the other Pi
-                if current_game_mode == GAME_MODES['cpu_vs_cpu']:
-                    other_color = 'black' if pi_color == 'white' else 'white'
-                    print(f"Syncing move to {other_color} Pi...")
-                    
-                    sync_result = send_move_to_pi(
-                        other_color,
-                        engine_move.get('from'),
-                        engine_move.get('to'),
-                        engine_move.get('piece')
-                    )
-                    
-                    if sync_result.get('status') != 'success':
-                        print(f"Warning: Failed to sync to {other_color} Pi: {sync_result.get('message')}")
-            else:
-                print("Warning: Pi returned success but engine_move is None and game_over is False")
+            # NOW check for game over to return to the GUI
+            if game_over:
+                print(f"Game finished. Winner: {result.get('winner')}")
+                return jsonify(result)
+                
+            # Handle continuing game
+            current_player = result.get('current_player', 'white' if pi_color == 'black' else 'black')
+            final_response = result
+            final_response['current_player'] = current_player
+            return jsonify(final_response)
+        
+        else:
+            print("Warning: Pi returned success but engine_move is None and game_over is False")
                 
             # Update current player (only really matters if game is continuing)
             current_player = result.get('current_player', 'white' if pi_color == 'black' else 'black')
@@ -626,11 +630,6 @@ def get_engine_move_endpoint():
             final_response['current_player'] = current_player
 
             return jsonify(final_response)
-        else:
-            return jsonify(final_response), 500
-        #     return jsonify(result)
-        # else:
-        #     return jsonify(result), 500
             
     except Exception as e:
         print(f"Engine move error: {e}")
