@@ -74,6 +74,9 @@ function createChessBoard() {
 //------------------------------------------------------------------------------
 
 function setupPieces() {
+    // clear the board fully opon every reset
+    document.querySelectorAll('.square').forEach(sq => removePieceFromSquare(sq));
+    
     const pieces = {
         // Black pieces (row 0-1) assigning where all the pieces on black start and their identities
         //
