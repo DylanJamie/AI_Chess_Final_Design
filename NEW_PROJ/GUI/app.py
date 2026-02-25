@@ -467,6 +467,10 @@ def set_game_mode():
                 "message": "Failed to initialize Black Pi. Check connection."
             }), 500
         print("Black Pi initialized successfully")
+
+        # Use default settings since it won't be calculating moves ###########################
+        print("Initializing White Pi as visualizer...")
+        initialize_pi_engine('white', white_elo, 10, False, 'carlsen')
         
     elif mode == GAME_MODES['cpu_vs_cpu']:
         # Need both Pis
@@ -524,9 +528,13 @@ def handle_move():
                 'status': 'error',
                 'message': 'Missing from or to square'
             }), 400
-        
+
         # Send move to black Pi (it maintains the board state)
         result = send_move_to_pi('black', from_square, to_square, piece)
+
+        ##########################################
+        # NEW: Mirror move to White Pi for LEDs/LCD
+        send_move_to_pi('white', from_square, to_square, piece)
         
         if result.get('status') == 'success' and result.get('move_accepted'):
             current_player = result.get('current_player', 'black')
