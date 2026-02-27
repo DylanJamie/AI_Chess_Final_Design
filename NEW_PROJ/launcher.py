@@ -10,16 +10,14 @@ from GUI.app import run_flask
 PIS = [
     {
         "host": "pi5-chess.local", 
-        "path": "/home/pi/Downloads/PIGAME/Boardapp",
-        "env": "/home/pi/chess-env/bin/activate"
+        "path": "/home/pi/Downloads/PIGAME_TEST/raspberry_white_PI1"
     },
     {
         "host": "pi5-chess2.local", 
-        "path": "/home/pi/Downloads/PIGAME2/Boardapp",
-        "env": "/home/pi/chess-env/bin/activate"
+        "path": "/home/pi/Downloads/PIGAME_TEST/raspberry_black_PI2"
     }
 ]
-LOCAL_APP_PATH = "/Users/dylanboles/Downloads/Senior_Design/Design_Folder/_01_30_26_/NEW_PROJ/GUI"
+LOCAL_APP_PATH = "/Users/dylanboles/Documents/GitHub_DylanJamie/AI_Chess_Final_Design/NEW_PROJ/GUI"
 LOCAL_URL = "http://127.0.0.1:5001/"
 
 processes = []
@@ -32,8 +30,10 @@ def cleanup(sig, frame):
     
     for ssh in ssh_connections:
         try:
-            # Targeted kill for the pi_chess_server
-            ssh.exec_command("pkill -f pi_chess_server.py")
+            # Targeted kill
+            ssh.exec_command("pkill -f LED_Program.py")
+            ssh.exec_command("pkill -f lcd_animation.py")
+            ssh.exec_command("pkill -f pi_chess_server_white.py")
             ssh.close()
         except:
             pass
@@ -54,13 +54,15 @@ def main():
             ssh.connect(pi['host'], username='pi')
             
             # Kill any old instances first
-            ssh.exec_command("pkill -f pi_chess_server.py")
+            ssh.exec_command("pkill -f LED_Program.py")
+            ssh.exec_command("pkill -f lcd_animation.py")
+            ssh.exec_command("pkill -f pi_chess_server_white.py")
             
             # The "One-Liner" Command:
             # 1. Source the env using absolute path
             # 2. CD into the folder
             # 3. Run the python script with nohup (background)
-            cmd = f"source {pi['env']} && cd {pi['path']} && nohup python pi_chess_server.py > /dev/null 2>&1 &"
+            cmd = f"cd {pi['path']} && nohup ./pi_start.sh > /dev/null 2>&1 &"
             
             # We use invoke_shell or exec_command with a bash prefix to ensure 'source' works
             ssh.exec_command(f"bash -c '{cmd}'")
