@@ -22,6 +22,12 @@ file: /AI_Chess_Senior_Design/GUI/static/CSS/board.css
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
 }
 
+/* Board in Check */
+.chess-board.in-check {
+    border-color: red;
+    box-shadow: 0 0 15px red;
+}
+
 /* Board Row */
 .board-row {
     display: flex;

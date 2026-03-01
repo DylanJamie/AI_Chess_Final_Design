@@ -400,6 +400,7 @@ def handle_move():
                 'move_accepted': True,
                 'board_state': get_board_state(),
                 'game_over': game_over,
+                'is_check': board.is_check(),
                 'winner': winner,
                 'current_player': current_player
             })
@@ -445,6 +446,7 @@ def get_board_state_endpoint():
             'current_player': current_player,
             'game_mode': current_game_mode,
             'game_over': game_over,
+            'is_check': board.is_check(),
             'winner': winner,
             'board_fen': board.fen()
         })
@@ -510,6 +512,7 @@ def get_engine_move_endpoint():
                 'engine_move': engine_move,
                 'board_state': get_board_state(),
                 'game_over': game_over,
+                'is_check': board.is_check(),
                 'winner': winner,
                 'current_player': current_player
             })
@@ -647,21 +650,4 @@ if __name__ == '__main__':
         print(f"✓ Stockfish found at: {stockfish_path}\n")
     else:
         print("⚠ WARNING: Stockfish not found! The app may not work properly.\n")
-
-    # try:
-    #     app.run(debug=FLASK_DEBUG, host=FLASK_HOST, port=FLASK_PORT)
-    # except KeyboardInterrupt:
-    #     print("\n\nShutting down server...")
-    #     # Clean up engines
-    #     if engine_white:
-    #         try:
-    #             engine_white.quit()
-    #         except:
-    #             pass
-    #     if engine_black:
-    #         try:
-    #             engine_black.quit()
-    #         except:
-    #             pass
-    # this should work
     run_flask()

@@ -260,14 +260,19 @@ function movePiece(targetSquare, targetPosition) {
                 if (response.move_accepted) {
                     // Update the board using the Pi's board state
                     updateBoardFromPiState(response.board_state);
-                    
+
+		    // Check if we are in check
+		    updateCheckStatus(response);
+		    
                     // Record and save
                     recordMove(pieceCode, fromPosition, targetPosition);
                     saveBoardState();
 
-                    document.getElementById('click-status').textContent = 
-                        `Moved ${getPieceNameFromCode(pieceCode)} from ${fromPosition} to ${targetPosition}`;
-
+		    if (!response.is_check) {
+			document.getElementById('click-status').textContent = 
+			    `Moved ${getPieceNameFromCode(pieceCode)} from ${fromPosition} to ${targetPosition}`;
+		    }
+		    
                     // Update current player if provided
                     if (response.current_player) {
                         currentPlayer = response.current_player;
@@ -374,8 +379,11 @@ async function sendMoveToBackend(pieceCode, fromPosition, toPosition) {
 
 async function getEngineMove() {
     try {
-        document.getElementById('click-status').textContent = 'Engine is thinking...';
-        
+	const statusEl = document.getElementById('click-status');
+	if (!statusEl.textContent.includes('Check')) {
+	    statusEl.textContent = 'Engine is thinking...';
+	}
+	
         // Send current game speed to backend so it can adjust engine thinking time
         const currentSpeed = gameSpeed || 10;
         const startTime = performance.now(); // Track timing
@@ -413,6 +421,9 @@ async function getEngineMove() {
                 saveBoardState();
             }
 
+	    // Show red border if checkmate
+	    updateCheckStatus(result);
+	    
             // In user_vs_cpu mode, end the game immediately here.
             if (currentGameMode === "user_vs_cpu") {
                 handleGameEnd(winner);
@@ -469,10 +480,16 @@ async function getEngineMove() {
             
             // Save board state
             saveBoardState();
-            
-            document.getElementById('click-status').textContent = 
-                `Engine moved: ${result.engine_move.from} to ${result.engine_move.to}`;
 
+	    // Check if we are in check
+	    updateCheckStatus(result);
+	    
+	    // Replace lines 479-480 with:
+	    if (!result.is_check) {
+		document.getElementById('click-status').textContent = 
+		    `Engine moved: ${result.engine_move.from} to ${result.engine_move.to}`;
+	    }
+	    
 	    // Update the Probability Bar if Possible
 	    if (result.engine_move.wdl) {
 		updateWDLBar(result.engine_move.wdl);
@@ -502,7 +519,7 @@ async function getEngineMove() {
                 // In CPU vs CPU mode, DO NOT recursively call getEngineMove here
                 // The cpuMoveLoop() function handles the loop - calling it here causes duplicate API calls
                 // In user_vs_cpu mode, after engine move, it's user's turn again
-                if (currentGameMode === "user_vs_cpu" && !isGamePaused) {
+                if (currentGameMode === "user_vs_cpu" && !isGamePaused && !result.is_check) {
                     document.getElementById('click-status').textContent = 
                         'Your turn! Make your move.';
                 }
@@ -769,6 +786,7 @@ async function resetGame() {
         if (result.status === 'success') {
             // Reset the frontend board to starting position
             setupPieces();
+	    document.getElementById('chessboard').classList.remove('in-check');
 	    gameMoves = [];
 	    boardHistory = [];
 	    moveNumber = 1;
@@ -820,6 +838,35 @@ async function resetGame() {
         if (cpuMoveTimeout) {
             clearTimeout(cpuMoveTimeout);
             cpuMoveTimeout = null;
+        }
+    }
+}
+
+// UpdateCheckStatus function for check
+function updateCheckStatus(data) {
+    const statusElement = document.getElementById('click-status');
+    const boardElement = document.getElementById('chessboard');
+    
+    if (!statusElement || !boardElement) return;
+
+    // Clear any old inline styles that would override the CSS class
+    boardElement.style.border = '';
+    boardElement.style.borderColor = '';
+    boardElement.style.boxShadow = '';
+
+    if (data.is_check === true) {
+	const kingColor = data.current_player === 'white' ? 'White' : 'Black';
+	// CHANGE: shorter message that fits under the board naturally
+	statusElement.textContent = `⚠️ ${kingColor} is in Check!`;
+	statusElement.style.color = 'red';
+	statusElement.style.fontWeight = 'bold';
+	boardElement.classList.add('in-check');
+    } else {
+        statusElement.style.color = '';
+        statusElement.style.fontWeight = 'normal';
+        boardElement.classList.remove('in-check');
+        if (statusElement.textContent.includes('CHECK!')) {
+            statusElement.textContent = '';
         }
     }
 }
