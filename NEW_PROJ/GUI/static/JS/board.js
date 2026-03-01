@@ -133,6 +133,76 @@ function addPieceToSquare(square, pieceCode) {
     square.dataset.piece = pieceCode;
 }
 
+
+//------------------------------------------------------------------------------
+//
+// function: isPawnPromotion
+//
+// arguments:
+//  pieceCode, fromPosition, targetPosition
+//
+// returns:
+//  True or False
+//
+// description:
+//  This will allow white and black pawns to promote to another Piece
+//
+//------------------------------------------------------------------------------
+function isPawnPromotion(pieceCode, fromPosition, targetPosition) {
+    // White pawn moving to rank 8, or black pawn moving to rank 1
+    if (pieceCode === 'wP' && targetPosition[1] === '8') return true;
+    if (pieceCode === 'bP' && targetPosition[1] === '1') return true;
+    return false;
+}
+
+
+
+//------------------------------------------------------------------------------
+//
+// function: showPromotionOverlay
+//
+// arguments:
+//  pieceCode, fromPosition, targetPosition
+//
+// returns:
+//  nothing
+//
+// description:
+//  This allows for the promotion overlay to show when a player goes to promote
+//  a pawn
+//
+//------------------------------------------------------------------------------
+
+function showPromotionOverlay(pieceCode, fromPosition, targetPosition) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('promotion-overlay');
+        const isWhite = pieceCode === 'wP';
+        const color = isWhite ? 'White' : 'Black';
+
+        // Set the correct piece images based on who is promoting
+        const pieceImages = {
+            q: `/static/images/pieces/${color}-Queen.png`,
+            r: `/static/images/pieces/${color}-Rook.png`,
+            b: `/static/images/pieces/${color}-Bishop.png`,
+            n: `/static/images/pieces/${color}-Knight.png`
+        };
+
+        document.getElementById('promo-queen').style.backgroundImage  = `url('${pieceImages.q}')`;
+        document.getElementById('promo-rook').style.backgroundImage   = `url('${pieceImages.r}')`;
+        document.getElementById('promo-bishop').style.backgroundImage = `url('${pieceImages.b}')`;
+        document.getElementById('promo-knight').style.backgroundImage = `url('${pieceImages.n}')`;
+
+        document.querySelectorAll('.promotion-btn').forEach(btn => {
+            btn.onclick = () => {
+                overlay.style.display = 'none';
+                resolve(btn.dataset.piece);
+            };
+        });
+
+        overlay.style.display = 'flex';
+    });
+}
+
 //------------------------------------------------------------------------------
 //
 // function: removePieceFromSquare
@@ -245,15 +315,26 @@ function selectPiece(square, position) {
 //
 //------------------------------------------------------------------------------
 
-function movePiece(targetSquare, targetPosition) {
+async function movePiece(targetSquare, targetPosition) {
     const pieceCode = selectedPiece.element.dataset.piece;
     const fromPosition = selectedPiece.position;
+
+    // Clear selection first
+    selectedPiece.element.classList.remove('selected');
+    selectedPiece = null;
+
+    // Check if this is a pawn promotion
+    let promotionPiece = null;
+    if (isPawnPromotion(pieceCode, fromPosition, targetPosition)) {
+        document.getElementById('click-status').textContent = 'Choose a promotion piece...';
+        promotionPiece = await showPromotionOverlay(pieceCode, fromPosition, targetPosition);
+    }
     
     // Show loading state
     document.getElementById('click-status').textContent = 'Processing move...';
     
     // Send move to backend API
-    sendMoveToBackend(pieceCode, fromPosition, targetPosition)
+    sendMoveToBackend(pieceCode, fromPosition, targetPosition, promotionPiece)
         .then(response => {
             if (response.status === 'success') {
                 // Move was accepted by the engine
@@ -315,10 +396,6 @@ function movePiece(targetSquare, targetPosition) {
             document.getElementById('click-status').textContent = 
                 'Connection error. Please try again.';
         });
-    
-    // Clear selection
-    selectedPiece.element.classList.remove('selected');
-    selectedPiece = null;
 }
 
 //------------------------------------------------------------------------------
@@ -338,11 +415,11 @@ function movePiece(targetSquare, targetPosition) {
 //
 //------------------------------------------------------------------------------
 
-async function sendMoveToBackend(pieceCode, fromPosition, toPosition) {
+async function sendMoveToBackend(pieceCode, fromPosition, toPosition, promotionPiece) {
     const moveData = {
         from: fromPosition,
         to: toPosition,
-        piece: pieceCode,
+        piece: promotionPiece || pieceCode,
         move_number: moveNumber
     };
     

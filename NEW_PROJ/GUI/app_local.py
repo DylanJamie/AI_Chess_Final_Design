@@ -134,24 +134,43 @@ def get_board_state():
             board_state[square_name] = piece_symbol
     return board_state
 
-def is_valid_move(from_square, to_square, piece_code):
-    """Validate if a move is legal"""
+def is_valid_move(from_square, to_square, piece_code=None):
+    """Validate if a move is legal, including promotions"""
     try:
         from_sq = chess.parse_square(from_square)
-        to_sq = chess.parse_square(to_square)
-        move = chess.Move(from_sq, to_sq)
+        to_sq   = chess.parse_square(to_square)
+
+        piece = board.piece_at(from_sq)
+        promotion = None
+        if piece and piece.piece_type == chess.PAWN:
+            if (piece.color == chess.WHITE and chess.square_rank(to_sq) == 7) or \
+               (piece.color == chess.BLACK and chess.square_rank(to_sq) == 0):
+                promo_map = {'q': chess.QUEEN, 'r': chess.ROOK,
+                             'b': chess.BISHOP, 'n': chess.KNIGHT}
+                promotion = promo_map.get(str(piece_code).lower(), chess.QUEEN)
+
+        move = chess.Move(from_sq, to_sq, promotion=promotion)
         return move in board.legal_moves
     except Exception as e:
         print(f"Move validation error: {e}")
         return False
 
-def make_move_local(from_square, to_square):
-    """Make a move on the local board"""
+def make_move_local(from_square, to_square, piece_code=None):
+    """Make a move on the local board, including promotions"""
     try:
         from_sq = chess.parse_square(from_square)
-        to_sq = chess.parse_square(to_square)
-        move = chess.Move(from_sq, to_sq)
-        
+        to_sq   = chess.parse_square(to_square)
+
+        piece = board.piece_at(from_sq)
+        promotion = None
+        if piece and piece.piece_type == chess.PAWN:
+            if (piece.color == chess.WHITE and chess.square_rank(to_sq) == 7) or \
+               (piece.color == chess.BLACK and chess.square_rank(to_sq) == 0):
+                promo_map = {'q': chess.QUEEN, 'r': chess.ROOK,
+                             'b': chess.BISHOP, 'n': chess.KNIGHT}
+                promotion = promo_map.get(str(piece_code).lower(), chess.QUEEN)
+
+        move = chess.Move(from_sq, to_sq, promotion=promotion)
         if move in board.legal_moves:
             board.push(move)
             return True
@@ -159,7 +178,7 @@ def make_move_local(from_square, to_square):
     except Exception as e:
         print(f"Error making move: {e}")
         return False
-
+    
 def get_engine_move_local(engine, game_speed=10):
     """Get engine move from a local engine"""
     if not engine:
@@ -380,7 +399,7 @@ def handle_move():
                 'move_accepted': False
             }), 400
         
-        if make_move_local(from_square, to_square):
+        if make_move_local(from_square, to_square, piece):
             # Check if game is over
             game_over = board.is_game_over()
             winner = None
