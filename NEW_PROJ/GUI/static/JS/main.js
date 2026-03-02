@@ -331,53 +331,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // -----------------------------------------------------------------------
     const interruptBtn = document.getElementById('interrupt-btn');
     if (interruptBtn) {
-        interruptBtn.addEventListener('click', async () => {
-            if (currentGameMode !== 'cpu_vs_cpu') return;
-
-            console.log('Interrupt requested — stopping CPU vs CPU loop');
-            interruptRequested = true;
-
-            // Stop the running CPU loop timeout
-            if (cpuMoveTimeout) {
-                clearTimeout(cpuMoveTimeout);
-                cpuMoveTimeout = null;
-            }
-
-            // Reset scores and game state
-            gameScore.white = 0;
-            gameScore.black = 0;
-            gameScore.draws = 0;
-            if (typeof updateScoreUI === 'function') updateScoreUI();
-
-            // Reset backend
-            try {
-                await fetch('/api/game-control', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ command: 'reset' })
-                });
-            } catch (err) {
-                console.error('Interrupt reset error:', err);
-            }
-
-            // Reset frontend
-            setupPieces();
-            gameMoves = [];
-            boardHistory = [];
-            moveNumber = 1;
-            if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
-            gameStarted = false;
-            isGamePaused  = false;
-            currentPlayer = 'white';
-            autorestart   = false; // Disable autorestart so resetGame won't loop again
-            initializeMovesPanel();
-            interruptRequested = false;
-
-            // Return to mode-select overlay
-            modeOverlay.style.display = 'flex';
-            difficultyOverlay.style.display = 'none';
-            document.getElementById('click-status').textContent = 'Select game mode to start playing';
-        });
+	interruptBtn.addEventListener('click', async () => {
+	    // REMOVED: the old guard that blocked user_vs_cpu — interrupt should work in ALL modes
+	    console.log('Interrupt requested — stopping game');
+	    interruptRequested = true;
+	    
+	    // Stop any running CPU loop
+	    if (cpuMoveTimeout) {
+		clearTimeout(cpuMoveTimeout);
+		cpuMoveTimeout = null;
+	    }
+	    
+	    // Reset scores and game state
+	    gameScore.white = 0;
+	    gameScore.black = 0;
+	    gameScore.draws = 0;
+	    if (typeof updateScoreUI === 'function') updateScoreUI();
+	    
+	    // Reset backend
+	    try {
+		await fetch('/api/game-control', {
+		    method: 'POST',
+		    headers: { 'Content-Type': 'application/json' },
+		    body: JSON.stringify({ command: 'reset' })
+		});
+	    } catch (err) {
+		console.error('Interrupt reset error:', err);
+	    }
+	    
+	    // Reset frontend
+	    setupPieces();
+	    clearLegalMoveHints();
+	    document.getElementById('chessboard').classList.remove('in-check');
+	    gameMoves = [];
+	    boardHistory = [];
+	    moveNumber = 1;
+	    if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
+	    gameStarted = false;
+	    isGamePaused = false;
+	    currentPlayer = 'white';
+	    autorestart = false;
+	    initializeMovesPanel();
+	    interruptRequested = false;
+	    
+	    // Return to mode-select overlay
+	    modeOverlay.style.display = 'flex';
+	    difficultyOverlay.style.display = 'none';
+	    document.getElementById('click-status').textContent = 'Select game mode to start playing';
+	});
     }
 
     // -----------------------------------------------------------------------
@@ -649,6 +650,7 @@ function resetSelection() {
     if (selectedPiece) {
         selectedPiece.element.classList.remove('selected');
         selectedPiece = null;
+	clearLegalMoveHints(); 
     }
     
     if (piConnected) {

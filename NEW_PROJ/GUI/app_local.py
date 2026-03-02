@@ -651,6 +651,26 @@ def handle_game_control():
             'message': f'Control error: {str(e)}'
         }), 500
 
+"""Returns the legal moves end point for the display of the possible moves"""
+@app.route('/api/legal-moves', methods=['POST'])
+def get_legal_moves():
+    """Return all legal destination squares for a given piece position"""
+    try:
+        data = request.get_json()
+        from_square = data.get('from')
+        if not from_square:
+            return jsonify({'status': 'error', 'message': 'Missing from square'}), 400
+
+        from_sq = chess.parse_square(from_square)
+        legal_targets = [
+            chess.square_name(move.to_square)
+            for move in board.legal_moves
+            if move.from_square == from_sq
+        ]
+        return jsonify({'status': 'success', 'legal_moves': legal_targets})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
 if __name__ == '__main__':
     print("="*60)
     print("Starting AI Chess GUI Server (LOCAL MODE - No Raspberry Pi)")

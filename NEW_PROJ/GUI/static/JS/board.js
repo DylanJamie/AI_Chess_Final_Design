@@ -205,6 +205,124 @@ function showPromotionOverlay(pieceCode, fromPosition, targetPosition) {
 
 //------------------------------------------------------------------------------
 //
+// function: animatePieceSlide
+//
+// arguments:
+//  fromSquare, toSquare, pieceCode, callback
+//
+// returns:
+//  nothing
+//
+// description:
+//  Visually slides a piece from one square to another, then runs a callback
+//
+//------------------------------------------------------------------------------
+
+function animatePieceSlide(fromSquare, toSquare, pieceCode) {
+    return new Promise((resolve) => {
+        const fromRect = fromSquare.getBoundingClientRect();
+        const toRect   = toSquare.getBoundingClientRect();
+
+        const imageMap = {
+            wK: 'White-King',   wQ: 'White-Queen',  wR: 'White-Rook',
+            wB: 'White-Bishop', wN: 'White-Knight', wP: 'White-Pawn',
+            bK: 'Black-King',   bQ: 'Black-Queen',  bR: 'Black-Rook',
+            bB: 'Black-Bishop', bN: 'Black-Knight', bP: 'Black-Pawn'
+        };
+
+        // Hide piece image only — keeps square background color visible
+        fromSquare.classList.add('piece-hidden');
+
+        const floater = document.createElement('div');
+        floater.className = 'piece-sliding';
+        floater.style.backgroundImage = `url('/static/images/pieces/${imageMap[pieceCode]}.png')`;
+        floater.style.left = `${fromRect.left + window.scrollX}px`;
+        floater.style.top  = `${fromRect.top  + window.scrollY}px`;
+        document.body.appendChild(floater);
+
+        let finished = false;
+        function finish() {
+            if (finished) return;
+            finished = true;
+            fromSquare.classList.remove('piece-hidden');
+            floater.remove();
+            resolve();
+        }
+
+        const safetyTimer = setTimeout(finish, 350);
+
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                floater.style.left = `${toRect.left + window.scrollX}px`;
+                floater.style.top  = `${toRect.top  + window.scrollY}px`;
+            });
+        });
+
+        floater.addEventListener('transitionend', () => {
+            clearTimeout(safetyTimer);
+            finish();
+        }, { once: true });
+    });
+}
+
+//------------------------------------------------------------------------------
+//
+// function: clearLegalMoveHints
+//
+// arguments:
+//  none
+//
+// returns:
+//  nothing
+//
+// description:
+// Clears all legal moves
+//
+//------------------------------------------------------------------------------
+
+function clearLegalMoveHints() {
+    document.querySelectorAll('.square.legal-hint').forEach(sq => {
+        sq.classList.remove('legal-hint');
+    });
+}
+
+//------------------------------------------------------------------------------
+//
+// function: showLegalMoveHints
+//
+// arguments:
+//  fromPosition
+//
+// returns:
+//  nothing
+//
+// description:
+// Fetches legal moves for a selected piece and shows dots on valid squares
+//
+//------------------------------------------------------------------------------
+
+async function showLegalMoveHints(fromPosition) {
+    clearLegalMoveHints();
+    try {
+        const response = await fetch('/api/legal-moves', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: fromPosition })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+            data.legal_moves.forEach(pos => {
+                const sq = document.querySelector(`.square[data-position="${pos}"]`);
+                if (sq) sq.classList.add('legal-hint');
+            });
+        }
+    } catch (e) {
+        console.warn('Could not fetch legal moves:', e);
+    }
+}
+
+//------------------------------------------------------------------------------
+//
 // function: removePieceFromSquare
 //
 // arguments:
@@ -293,9 +411,14 @@ function selectPiece(square, position) {
         pieceCode: square.dataset.piece
     };
     square.classList.add('selected');
-    
-    document.getElementById('click-status').textContent = 
+
+    document.getElementById('click-status').textContent =
         `Selected: ${position} (${getPieceNameFromCode(square.dataset.piece)})`;
+
+    // Show legal move dots in user_vs_cpu mode
+    if (currentGameMode === 'user_vs_cpu') {
+        showLegalMoveHints(position);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -322,6 +445,7 @@ async function movePiece(targetSquare, targetPosition) {
     // Clear selection first
     selectedPiece.element.classList.remove('selected');
     selectedPiece = null;
+    clearLegalMoveHints();
 
     // Check if this is a pawn promotion
     let promotionPiece = null;
@@ -340,7 +464,7 @@ async function movePiece(targetSquare, targetPosition) {
                 // Move was accepted by the engine
                 if (response.move_accepted) {
                     // Update the board using the Pi's board state
-                    updateBoardFromPiState(response.board_state);
+                    updateBoardFromPiState(response.board_state, fromPosition, targetPosition);
 
 		    // Check if we are in check
 		    updateCheckStatus(response);
@@ -494,7 +618,7 @@ async function getEngineMove() {
 
             // Update the board to show the final position (checkmate/stalemate) before reset
             if (result.board_state) {
-                updateBoardFromPiState(result.board_state);
+		updateBoardFromPiState(result.board_state, result.engine_move.from, result.engine_move.to);
                 saveBoardState();
             }
 
@@ -546,7 +670,7 @@ async function getEngineMove() {
         if (result.status === 'success' && result.engine_move) {
             // Update the board using the Pi's board state
             if (result.board_state) {
-                updateBoardFromPiState(result.board_state);
+		updateBoardFromPiState(result.board_state, result.engine_move.from, result.engine_move.to);
             } else {
                 // Fallback to individual move if no board state
                 applyEngineMove(result.engine_move);
@@ -742,23 +866,66 @@ function updateScoreDisplay() {
 //  Updates entire board state based on the board state sent from PI
 //
 //------------------------------------------------------------------------------
+function updateBoardFromPiState(boardState, animateFrom, animateTo) {
+    if (animateFrom && animateTo) {
+        const fromSquare = document.querySelector(`.square[data-position="${animateFrom}"]`);
+        const toSquare   = document.querySelector(`.square[data-position="${animateTo}"]`);
+        const pieceCode  = fromSquare ? fromSquare.dataset.piece : null;
 
-function updateBoardFromPiState(boardState) {
-    // Clear all pieces first
-    const squares = document.querySelectorAll('.square');
-    squares.forEach(square => {
-        removePieceFromSquare(square);
-    });
-    
-    // Add pieces based on Pi's board state
+        if (fromSquare && toSquare && pieceCode) {
+
+            // Detect castling: king moves exactly 2 files
+            const fromFile = animateFrom.charCodeAt(0);
+            const toFile   = animateTo.charCodeAt(0);
+            const isCastle = (pieceCode === 'wK' || pieceCode === 'bK')
+                             && Math.abs(fromFile - toFile) === 2;
+
+            if (isCastle) {
+                const rank = animateFrom[1]; // '1' for white, '8' for black
+
+                // Work out rook from/to based on kingside vs queenside
+                let rookFrom, rookTo;
+                if (toFile > fromFile) {
+                    // Kingside — rook moves h→f
+                    rookFrom = 'h' + rank;
+                    rookTo   = 'f' + rank;
+                } else {
+                    // Queenside — rook moves a→d
+                    rookFrom = 'a' + rank;
+                    rookTo   = 'd' + rank;
+                }
+
+                const rookFromSq = document.querySelector(`.square[data-position="${rookFrom}"]`);
+                const rookToSq   = document.querySelector(`.square[data-position="${rookTo}"]`);
+                const rookCode   = pieceCode === 'wK' ? 'wR' : 'bR';
+
+                // Animate king and rook simultaneously, apply board state when both finish
+                const animations = [animatePieceSlide(fromSquare, toSquare, pieceCode)];
+                if (rookFromSq && rookToSq) {
+                    animations.push(animatePieceSlide(rookFromSq, rookToSq, rookCode));
+                }
+
+                Promise.all(animations).then(() => applyBoardState(boardState));
+                return;
+            }
+
+            // Normal move
+            animatePieceSlide(fromSquare, toSquare, pieceCode)
+                .then(() => applyBoardState(boardState));
+            return;
+        }
+    }
+    // No animation info — apply immediately
+    applyBoardState(boardState);
+}
+
+function applyBoardState(boardState) {
+    document.querySelectorAll('.square').forEach(sq => removePieceFromSquare(sq));
     for (const [position, pieceSymbol] of Object.entries(boardState)) {
         const square = document.querySelector(`.square[data-position="${position}"]`);
         if (square) {
-            // Convert chess library piece symbols to our piece codes
             const pieceCode = convertPieceSymbolToCode(pieceSymbol);
-            if (pieceCode) {
-                addPieceToSquare(square, pieceCode);
-            }
+            if (pieceCode) addPieceToSquare(square, pieceCode);
         }
     }
 }
