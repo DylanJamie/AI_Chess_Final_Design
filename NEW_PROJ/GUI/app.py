@@ -763,6 +763,21 @@ def handle_game_control():
             'message': f'Control error: {str(e)}'
         }), 500
 
+@app.route('/api/legal-moves', methods=['POST'])
+def get_legal_moves():
+    """Forward legal moves request to the Pi that holds the board state"""
+    try:
+        data = request.get_json()
+        # Black Pi always has the authoritative board state
+        result = requests.post(
+            f"{get_pi_url('black')}/api/legal-moves",
+            json=data,
+            timeout=5
+        )
+        return jsonify(result.json())
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
 if __name__ == '__main__':
     print("="*60)
     print("Starting AI Chess GUI Server with Raspberry Pi Integration")
