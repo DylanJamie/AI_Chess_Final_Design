@@ -190,8 +190,11 @@ function updateMovesDisplay() {
 
     movesList.innerHTML = html;
     
-    // Scroll to bottom to show latest moves
-    movesList.scrollTop = movesList.scrollHeight;
+    // Wait for browser to render the new HTML before scrolling
+    setTimeout(() => {
+	const gameMoves = document.getElementById('game-moves');
+	if (gameMoves) gameMoves.scrollTop = gameMoves.scrollHeight;
+    }, 50);
 }
 
 //------------------------------------------------------------------------------
