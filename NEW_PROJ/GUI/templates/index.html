@@ -173,12 +173,21 @@
             <h2 id="game-over-title">Game Over!</h2>
             <p id="game-over-message"></p>
             <div class="overlay-buttons">
-              <button id="continue-playing-btn" class="overlay-btn large">Continue Playing</button>
-              <button id="new-opponent-btn" class="overlay-btn large">Pick New Opponent</button>
+              <button id="view-board-btn" class="overlay-btn large">🔍 View Board</button>
+              <button id="continue-playing-btn" class="overlay-btn large">▶ Play Again</button>
+              <button id="new-opponent-btn" class="overlay-btn large">🔄 New Opponent</button>
             </div>
+            <p style="margin-top:14px; font-size:12px; color:#2c1810; opacity:0.7;">
+              Press <strong>Space</strong> to view board · Press <strong>Space again</strong> to return
+            </p>
 	  </div>
 	</div>
 
+	<!-- Floating button shown when player is viewing the end board -->
+	<div id="view-board-banner" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9998; background:#2c1810; color:#f0d9b5; padding:12px 28px; border-radius:30px; font-size:15px; font-weight:bold; box-shadow:0 4px 20px rgba(0,0,0,0.5); cursor:pointer; border:2px solid #8B6F47;">
+	  ← Back to Results &nbsp;<span style="opacity:0.6; font-size:12px;">(or press Space)</span>
+	</div>
+	
 	<!-- OVERLAY 4: PLAYER PROMOTION -->
 	<div id="promotion-overlay" class="mode-overlay" style="display:none;">
 	  <div class="overlay-content">

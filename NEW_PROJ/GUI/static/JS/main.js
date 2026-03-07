@@ -388,6 +388,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const continuePlayingBtn   = document.getElementById('continue-playing-btn');
     const newOpponentBtn       = document.getElementById('new-opponent-btn');
 
+    // -----------------------------------------------------------------------
+    // VIEW BOARD — dismiss overlay so player can study the final position
+    // -----------------------------------------------------------------------
+    const viewBoardBtn    = document.getElementById('view-board-btn');
+    const viewBoardBanner = document.getElementById('view-board-banner');
+
+    if (viewBoardBtn) {
+	viewBoardBtn.addEventListener('click', () => {
+            gameOverOverlay.style.display = 'none';
+            viewBoardBanner.style.display = 'block';
+	});
+    }
+
+    // Clicking the floating banner brings the overlay back
+    if (viewBoardBanner) {
+	viewBoardBanner.addEventListener('click', () => {
+            viewBoardBanner.style.display = 'none';
+            gameOverOverlay.style.display = 'flex';
+	});
+    }
+
+    // Space bar toggles between viewing board and seeing the overlay
+    document.addEventListener('keydown', (e) => {
+	if (e.code !== 'Space') return;
+	// Only act when game is over (banner or overlay is visible)
+	const bannerVisible  = viewBoardBanner  && viewBoardBanner.style.display  !== 'none';
+	const overlayVisible = gameOverOverlay  && gameOverOverlay.style.display  !== 'none';
+	if (!bannerVisible && !overlayVisible) return;
+
+	e.preventDefault(); // stop page scroll on space
+	if (overlayVisible) {
+            gameOverOverlay.style.display  = 'none';
+            viewBoardBanner.style.display  = 'block';
+	} else {
+            viewBoardBanner.style.display  = 'none';
+            gameOverOverlay.style.display  = 'flex';
+	}
+    });
+    
     if (continuePlayingBtn) {
         continuePlayingBtn.addEventListener('click', async () => {
             // Hide the overlay immediately so the user sees the board reset
@@ -480,6 +519,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    
+    
     // Game mode UI logic
     const gameModeSelect = document.getElementById("game-mode");
     if (gameModeSelect) {
