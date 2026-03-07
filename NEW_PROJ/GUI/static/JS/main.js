@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
         continuePlayingBtn.addEventListener('click', async () => {
             // Hide the overlay immediately so the user sees the board reset
             gameOverOverlay.style.display = 'none';
-
+ 
             // Update the score UI (score was already incremented in handleGameEnd)
             if (typeof updateScoreUI === 'function') updateScoreUI();
 
@@ -453,12 +453,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
                     saveBoardState();
                     initializeMovesPanel();
-
+		    document.getElementById('chessboard').classList.remove('in-check'); 
+		    updateCheckStatus({ is_check: false }); 
+		    
                     // Un-pause and restart
                     gameStarted = true;
-                    isGamePaused = false;
+		     // set the Game to be unpaused
+		    isGamePaused = false
                     currentPlayer = 'white';
-
+		    updateGameControls();
+		    
+		    
                     document.getElementById('click-status').textContent =
                         'New game started! You are White. Make your move!';
                 } else {

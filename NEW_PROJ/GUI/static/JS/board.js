@@ -604,6 +604,11 @@ async function getEngineMove() {
         
         const result = await response.json();
 
+	if (isGamePaused) {
+	    console.log('Engine move discarded — game was paused during fetch');
+	    return null;
+	}
+	
         // If the backend reports game over (stalemate/checkmate/draw), handle it cleanly.
         // This avoids throwing errors / freezing when there are no legal moves.
         if (result && result.game_over) {

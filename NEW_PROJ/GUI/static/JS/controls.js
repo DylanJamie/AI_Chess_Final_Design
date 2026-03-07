@@ -185,33 +185,34 @@ function resumeGame() {
     document.getElementById('play-btn').style.display = 'none';
     document.getElementById('pause-btn').style.display = 'block';
     
-    // Reset to current game state
-    resetToCurrentGame();
-    
-    // Update status message
-    if (currentGameMode === "cpu_vs_cpu") {
-        document.getElementById('click-status').textContent = 'Game resumed - CPU vs CPU playing...';
-    } else {
-        document.getElementById('click-status').textContent = 'Game resumed - your turn!';
+    // Only reset board position in user_vs_cpu — in cpu_vs_cpu the board
+    // is already at the correct live position and resetToCurrentGame() would
+    // snap it back to a pre-pause history state causing the glitch
+    if (currentGameMode !== 'cpu_vs_cpu') {
+        resetToCurrentGame();
     }
     
-    // Remove visual indication that game is paused
     const board = document.getElementById('chessboard');
     board.style.opacity = '1';
     board.style.pointerEvents = 'auto';
 
-    // Restart the loop if we are in CPU vs CPU mode
-    if (currentGameMode === "cpu_vs_cpu") {
-        console.log('Resuming CPU vs CPU game loop...');
-        // Small delay to ensure state is fully updated
-        setTimeout(() => {
-            cpuMoveLoop();
-        }, 100);
+    if (currentGameMode === 'cpu_vs_cpu') {
+        document.getElementById('click-status').textContent = 'Game resumed - CPU vs CPU playing...';
+	// Clear any timeout that may have been queued before the pause
+	// to prevent two loop instances running simultaneously
+	if (cpuMoveTimeout) {
+            clearTimeout(cpuMoveTimeout);
+            cpuMoveTimeout = null;
+	}
+	
+        setTimeout(() => cpuMoveLoop(), 100);
+    } else {
+        document.getElementById('click-status').textContent = 'Game resumed - your turn!';
     }
     
     console.log('Game resumed');
 }
-
+    
 //------------------------------------------------------------------------------
 //
 // function: interruptGame

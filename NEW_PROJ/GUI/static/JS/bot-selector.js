@@ -451,7 +451,13 @@ async function cpuMoveLoop() {
     // Call Function that talks to app.py
     try {
         const moveResult = await getEngineMove();
-        
+
+	// Engine move was discarded due to pause — stop the loop cleanly
+	if (moveResult === null) {
+	    console.log('CPU loop stopping — move discarded due to pause');
+	    return;
+	}
+	
         // If getEngineMove() detected game_over, it will have handled reset/restart
         // and returned { gameEnded: true }. Stop the loop immediately.
         if (moveResult && moveResult.gameEnded) {
