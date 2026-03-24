@@ -5,8 +5,8 @@ import os
 
 # --- CONFIGURATION ---
 STOCKFISH_PATH = "/opt/homebrew/bin/stockfish"  # Update this!
-NNUE_FILE_PATH = "../nnue/carlsen_halfkav2_hm.nnue"           # Path to your uploaded file
-PGN_FILE_PATH = "./pgn_data/Carlsen.pgn"                    # Path to Carlsen's real games
+NNUE_FILE_PATH = "../nnue/nn-ae6a388e4a1a.nnue"           # Path to your uploaded file
+PGN_FILE_PATH = "./pgn_data/Fischer.pgn"                    # Path to Carlsen's real games
 SEARCH_DEPTH = 12                                     # Depth for the NNUE to "think"
 MAX_GAMES = 100                                        # Number of games to sample
 
@@ -41,14 +41,18 @@ def get_metrics():
                    (board.turn == chess.BLACK and not is_magnus_white):
                     
                     # 1. Get the Engine's top choice
-                    analysis = engine.analyse(board, chess.engine.Limit(depth=SEARCH_DEPTH))
-                    engine_move = analysis.get("pv")[0]
-                    engine_eval = analysis.get("score").white().score(mate_score=10000)
+                    # Inside your move loop:
+                    analysis = engine.analyse(board, chess.engine.Limit(depth=SEARCH_DEPTH), multipv=3)
 
-                    # 2. Compare to Magnus's actual move
-                    if move == engine_move:
-                        exact_matches += 1
-                    
+                    # Top-1 Match
+                    if move == analysis[0].get("pv")[0]:
+                        top1_matches += 1
+                        
+                        # Top-3 Match
+                    top3_moves = [info.get("pv")[0] for info in analysis]
+                    if move in top3_moves:
+                        top3_matches += 1
+    
                     # 3. Calculate Centipawn Loss for this move
                     # (How much better/worse was Magnus's move vs the Engine's top choice?)
                     board.push(move)
@@ -74,6 +78,7 @@ def get_metrics():
     print("\n--- RESULTS ---")
     print(f"Total Moves Analyzed: {total_moves}")
     print(f"Top-1 Move Match Accuracy: {accuracy:.2f}%")
+    print(f"Top-3 Move Match Accuracy: {accuracy:.2f}%")
     print(f"Average Centipawn Loss vs Player: {avg_cp_loss:.2f}")
 
 if __name__ == "__main__":
