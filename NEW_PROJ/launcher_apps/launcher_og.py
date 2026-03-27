@@ -9,11 +9,11 @@ from GUI.app import run_flask
 # Updated Configuration based on your exact paths
 PIS = [
     {
-        "host": "192.168.10.2", 
+        "host": "pi5-chess.local", 
         "path": "/home/pi/Downloads/PIGAME_TEST/raspberry_white_PI1"
     },
     {
-        "host": "192.168.10.3", 
+        "host": "pi5-chess2.local", 
         "path": "/home/pi/Downloads/PIGAME_TEST/raspberry_black_PI2"
     }
 ]
@@ -42,16 +42,6 @@ def cleanup(sig, frame):
 
 signal.signal(signal.SIGINT, cleanup)
 
-def wait_for_server(url, timeout=10):
-    start = time.time()
-    while time.time() - start < timeout:
-        try:
-            requests.get(url)
-            return True
-        except:
-            time.sleep(0.5)
-    return False
-
 def main():
     for pi in PIS:
         try:
@@ -61,8 +51,7 @@ def main():
             
             # Note: This assumes you have SSH Keys set up. 
             # If not, add password='yourpassword' to ssh.connect
-            key_path = os.path.expanduser("~/.ssh/chess-key")
-            ssh.connect(pi['host'], username='pi', key_filename=key_path)
+            ssh.connect(pi['host'], username='pi')
             
             # Kill any old instances first
             ssh.exec_command("pkill -f LED_Program.py")
@@ -79,16 +68,16 @@ def main():
             ssh.exec_command(f"bash -c '{cmd}'")
             
             ssh_connections.append(ssh)
-            print(f" Started server on {pi['host']}")
+            print(f"✅ Started server on {pi['host']}")
         except Exception as e:
-            print(f" Failed to connect to {pi['host']}: {e}")
+            print(f"❌ Failed to connect to {pi['host']}: {e}")
 
     # Start Local App
     print("Starting local GUI...")
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
 
-    wait_for_server(LOCAL_URL)    
+    time.sleep(3)
     webbrowser = webview.create_window("ChessApp", "http://127.0.0.1:5001/")
     
     # Start the webpage

@@ -1,0 +1,10 @@
+TODO TXT Where all of the bugs that need to be fixed go.
+
+Rebulid launcher with Terminal Opens
+Debug Next Move with The pis
+rebuild second model
+documentation of how to build
+Add more animations
+Tempature Test
+Current Test
+nnue comparison
