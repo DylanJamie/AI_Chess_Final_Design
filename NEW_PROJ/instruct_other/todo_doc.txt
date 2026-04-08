@@ -1,0 +1,7 @@
+# All Bugs needed to be fixed
+
+- Only One LCD on
+- Need to rebuild the apps with the Chigago branches
+- Showing Draw on a loss
+- Helping game mode with StockFish
+- Clickable app is not Responding Executable is
