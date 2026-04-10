@@ -11,6 +11,10 @@ import threading
 import subprocess
 from GUI.app import run_flask
 
+# Import the keygen
+import launcher_apps.keygen as kg
+keypath = kg.create_private_key()
+
 # Configurations
 PIS = [
     {
@@ -41,7 +45,7 @@ def open_ssh_connections_terminal(pi):
     """
     user_host = f"{pi['username']}@{pi['host']}"
     cmd = f"cd {pi['path']} && ./pi_start.sh"
-    ssh_cmd = f"ssh -i ~/.ssh/chess-key -t {user_host} '{cmd}'"
+    ssh_cmd = f"ssh -i {keypath} -t {user_host} '{cmd}'"
     
     # This is the Apple script
     applescript = f"""
@@ -53,35 +57,6 @@ def open_ssh_connections_terminal(pi):
     """
     subprocess.Popen(["osascript", "-e", applescript])
     print(f"{pi['label']} ({pi['host']}) opened")
-
-# Use paramko to kill all dead processes
-def start_background_scripts(pi):
-    """
-    Uses paramiko to SSH in, kill any stale processes, then start the
-    LED + LCD animation scripts silently in the background.
-    The chess server itself is left for the terminal window (foreground).
-    """
-    print(f"Connecting to {pi['host']}...")
-
-    # ssh method to go into the pis
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-    # Specify the key for connecting to the Pis
-    key_path = os.path.expanduser("~/.ssh/chess-key")
-    ssh.connect(pi['host'], username=pi['username'], key_filename=key_path)
-    
-    # Kill any stale processes from a previous run
-    ssh.exec_command("pkill python")
-    ssh.exec_command("pkill -f LED_Program.py")
-    ssh.exec_command("pkill -f lcd_animation.py")
-    ssh.exec_command("pkill -f pi_chess_server_white.py")
-    time.sleep(1)
-        
-    # Start LED + LCD silently in the background
-    ssh.exec_command(f"bash -c '{cmd}'")
-        
-    ssh_connections.append(ssh)
     
 # Clean Up killing all the Programs on the PIs
 def cleanup(sig, frame):
@@ -116,7 +91,7 @@ def main():
 
     # Open the web app in a native webview window (blocks until closed)
     print(f"Opening webview -> {LOCAL_URL}")
-    webview.create_window("ChessApp", LOCAL_URL, width=1024, height=768, resizable=True)
+    webview.create_window("ChessApp", LOCAL_URL, width=1400, height=900, x=0, y=0,  resizable=True)
     webview.start()
     
 if __name__ == "__main__":

@@ -16,6 +16,7 @@ file: /AI_Chess_Senior_Design/GUI/static/CSS/main.js
 
 let selectedPiece = null;
 let gameMoves = [];
+let currentDiffPage = 1;
 let moveNumber = 1;
 let isGamePaused = false; // Tracks if the game is Pausesd
 let currentMoveIndex = -1; // -1 means at the beginning, 0+ means at that move
@@ -148,17 +149,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showDifficultyPage(pageNum) {
-        currentDifficultyPage = pageNum;
+
+        const pages = [
+            document.getElementById('difficulty-page-1'),
+            document.getElementById('difficulty-page-2'),
+            document.getElementById('difficulty-page-3')
+        ];
+            
+        pages.forEach(p => { if(p) p.style.display = 'none'; });
+
+        // Show the specific page requested
+        const targetPage = document.getElementById(`difficulty-page-${pageNum}`);
+        if (targetPage) {
+            targetPage.style.display = 'block';
+        }
+
+        // Update the title and buttons based on the page number
+        const title = document.getElementById('difficulty-title');
+        const nextBtn = document.getElementById('difficulty-next-page-btn');
+        const prevBtn = document.getElementById('difficulty-prev-page-btn');
+
         if (pageNum === 1) {
-            page1.style.display = 'block';
-            page2.style.display = 'none';
-            diffPrevPageBtn.style.display = 'none';
-            diffNextPageBtn.style.display = 'inline-block';
-        } else {
-            page1.style.display = 'none';
-            page2.style.display = 'block';
-            diffPrevPageBtn.style.display = 'inline-block';
-            diffNextPageBtn.style.display = 'none';
+            title.textContent = "Select Elo Difficulty";
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+        } else if (pageNum === 2) {
+            title.textContent = "Select Pro Player Models";
+            prevBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'inline-block';
+        } else if (pageNum === 3) {
+            title.textContent = "Select Stockfish Engines";
+            prevBtn.style.display = 'inline-block';
+            nextBtn.style.display = 'none'; // No more pages left
         }
     }
 
@@ -207,15 +229,22 @@ document.addEventListener('DOMContentLoaded', function() {
     diffBackBtn.addEventListener('click', () => {
         difficultyOverlay.style.display = 'none';
         modeOverlay.style.display = 'flex';
-        showDifficultyPage(1);
+        currentDiffPage = 1;
+        showDifficultyPage(currentDiffPage);
     });
 
     diffPrevPageBtn.addEventListener('click', () => {
-        showDifficultyPage(1);
+        if (currentDiffPage > 1) {
+            currentDiffPage--;
+            showDifficultyPage(currentDiffPage);
+        }
     });
 
     diffNextPageBtn.addEventListener('click', () => {
-        showDifficultyPage(2);
+        if (currentDiffPage < 3) {
+            currentDiffPage++;
+            showDifficultyPage(currentDiffPage);
+        }
     });
 
     // add listeners to card pools

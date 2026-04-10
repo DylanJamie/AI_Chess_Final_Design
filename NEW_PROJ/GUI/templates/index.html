@@ -60,9 +60,8 @@
                 </div>
 
                 <!-- Page 2: Model Selections -->
-                <div id="difficulty-page-2" class="difficulty-page" style="display:none;">
+<div id="difficulty-page-2" class="difficulty-page" style="display:none;">
                     <div id="difficulty-columns-models" class="difficulty-columns">
-                        <!-- Left column (used for white engine in CPU vs CPU) -->
                         <div class="difficulty-column" id="left-difficulty-column-models" style="display:none;">
                             <h3>White Engine</h3>
                             <div class="cards" id="white-cards-models">
@@ -76,32 +75,32 @@
                                     <div class="bot-name">Bobby Fischer Bot</div>
                                     <span class="elo">2785</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="yifan" data-elo="2596">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="yifan" data-elo="2596">
                                     <img src="{{ url_for('static', filename='images/icons/hou_yifan.png') }}" alt="Hou Yifan" class="bot-icon">
                                     <div class="bot-name">Hou Yifan Bot</div>
                                     <span class="elo">2596</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="spassky" data-elo="2670">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="spassky" data-elo="2670">
                                     <img src="{{ url_for('static', filename='images/icons/boris_spassky.png') }}" alt="Boris Spassky" class="bot-icon">
                                     <div class="bot-name">Boris Spassky Bot</div>
                                     <span class="elo">2670</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="nakamura" data-elo="2810">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="nakamura" data-elo="2810">
                                     <img src="{{ url_for('static', filename='images/icons/nakamura.png') }}" alt="Hikaru Nakamura" class="bot-icon">
                                     <div class="bot-name">Hikaru Nakamura Bot</div>
                                     <span class="elo">2810</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="krush" data-elo="2402">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="krush" data-elo="2402">
                                     <img src="{{ url_for('static', filename='images/icons/krush.png') }}" alt="Irina Krush" class="bot-icon">
                                     <div class="bot-name">Irina Krush Bot</div>
                                     <span class="elo">2402</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="polgar" data-elo="2735">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="polgar" data-elo="2735">
                                     <img src="{{ url_for('static', filename='images/icons/judit_polgar.png') }}" alt="Judit Polgar" class="bot-icon">
                                     <div class="bot-name">Judit Polgar Bot</div>
                                     <span class="elo">2735</span>
-				</div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="anand" data-elo="2817">
+                                </div>
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="anand" data-elo="2817">
                                     <img src="{{ url_for('static', filename='images/icons/viswanathan_anand.png') }}" alt="Viswanathan Anand" class="bot-icon">
                                     <div class="bot-name">Viswanathan Anand Bot</div>
                                     <span class="elo">2817</span>
@@ -109,7 +108,6 @@
                             </div>
                         </div>
 
-                        <!-- Right column (CPU engine) -->
                         <div class="difficulty-column" id="right-difficulty-column-models">
                             <h3 id="right-column-title-models">Black Engine</h3>
                             <div class="cards" id="black-cards-models">
@@ -123,40 +121,66 @@
                                     <div class="bot-name">Bobby Fischer Bot</div>
                                     <span class="elo">2785</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="yifan" data-elo="2596">
-				  <img src="{{ url_for('static', filename='images/icons/hou_yifan.png') }}" alt="Hou Yifan" class="bot-icon">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="yifan" data-elo="2596">
+                                    <img src="{{ url_for('static', filename='images/icons/hou_yifan.png') }}" alt="Hou Yifan" class="bot-icon">
                                     <div class="bot-name">Hou Yifan Bot</div>
                                     <span class="elo">2596</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="spassky" data-elo="2670">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="spassky" data-elo="2670">
                                     <img src="{{ url_for('static', filename='images/icons/boris_spassky.png') }}" alt="Boris Spassky" class="bot-icon">
                                     <div class="bot-name">Boris Spassky Bot</div>
                                     <span class="elo">2670</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="nakamura" data-elo="2810">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="nakamura" data-elo="2810">
                                     <img src="{{ url_for('static', filename='images/icons/nakamura.png') }}" alt="Hikaru Nakamura" class="bot-icon">
                                     <div class="bot-name">Hikaru Nakamura Bot</div>
                                     <span class="elo">2810</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="krush" data-elo="2402">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="krush" data-elo="2402">
                                     <img src="{{ url_for('static', filename='images/icons/krush.png') }}" alt="Irina Krush" class="bot-icon">
                                     <div class="bot-name">Irina Krush Bot</div>
                                     <span class="elo">2402</span>
                                 </div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="polgar" data-elo="2735">
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="polgar" data-elo="2735">
                                     <img src="{{ url_for('static', filename='images/icons/judit_polgar.png') }}" alt="Judit Polgar" class="bot-icon">
                                     <div class="bot-name">Judit Polgar Bot</div>
                                     <span class="elo">2735</span>
-				</div>
-				<div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="anand" data-elo="2817">
+                                </div>
+                                <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="anand" data-elo="2817">
                                     <img src="{{ url_for('static', filename='images/icons/viswanathan_anand.png') }}" alt="Viswanathan Anand" class="bot-icon">
                                     <div class="bot-name">Viswanathan Anand Bot</div>
                                     <span class="elo">2817</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </div> </div> 
+                    <div id="difficulty-page-3" class="difficulty-page" style="display:none;">
+                  <div id="difficulty-columns-computers" class="difficulty-columns">
+                      
+                      <div class="difficulty-column" id="left-difficulty-column-computers">
+                          <h3>White Engine</h3>
+                          <div class="cards" id="white-cards-computers">
+                              <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="Stock_FishBot" data-elo="0">
+                                  <img src="{{ url_for('static', filename='images/icons/StockFish.png') }}" alt="StockFish Bot" class="bot-icon">
+                                  <div class="bot-name">StockFish Computer</div>
+                                  <span class="elo">3000+</span>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div class="difficulty-column" id="right-difficulty-column-computers">
+                          <h3>Black Engine</h3>
+                          <div class="cards" id="black-cards-computers">
+                              <div class="difficulty-card nnue-card" data-nnue="true" data-nnue-model="Stock_FishBot" data-elo="0">
+                                  <img src="{{ url_for('static', filename='images/icons/StockFish.png') }}" alt="StockFish Bot" class="bot-icon">
+                                  <div class="bot-name">StockFish Computer</div>
+                                  <span class="elo">3000+</span>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
 
                 <div class="overlay-actions">
                     <button id="difficulty-back-btn" class="overlay-btn">Back</button>
@@ -310,7 +334,7 @@
           </div>
 	</div>
 	
-        <Div class="status">
+        <div class="status">
             <p id="click-status">Select game mode to start playing</p>
         </div>
 
