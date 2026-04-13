@@ -152,8 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const pages = [
             document.getElementById('difficulty-page-1'),
-            document.getElementById('difficulty-page-2'),
-            document.getElementById('difficulty-page-3')
+            document.getElementById('difficulty-page-2')
         ];
             
         pages.forEach(p => { if(p) p.style.display = 'none'; });
@@ -176,12 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (pageNum === 2) {
             title.textContent = "Select Pro Player Models";
             prevBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'inline-block';
-        } else if (pageNum === 3) {
-            title.textContent = "Select Stockfish Engines";
-            prevBtn.style.display = 'inline-block';
-            nextBtn.style.display = 'none'; // No more pages left
-        }
+	}
     }
 
     overlayUserBtn.addEventListener('click', () => {
@@ -241,9 +235,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     diffNextPageBtn.addEventListener('click', () => {
-        if (currentDiffPage < 3) {
+        if (currentDiffPage < 2) {
             currentDiffPage++;
             showDifficultyPage(currentDiffPage);
+	    diffNextPageBtn.style.display = 'none';
+	    diffPrevPageBtn.style.display = 'inline-block';
         }
     });
 
