@@ -187,7 +187,9 @@ document.addEventListener('DOMContentLoaded', function() {
         rightColumnModels.style.display = 'block';
         document.getElementById('right-column-title').textContent = 'CPU Engine';
         document.getElementById('right-column-title-models').textContent = 'CPU Engine';
-        document.getElementById('difficulty-title').textContent = 'Select CPU Difficulty';
+        // document.getElementById('difficulty-title').textContent = 'Select CPU Difficulty';
+	// Add this line to make the transition feel contextual
+	document.getElementById('difficulty-title').textContent = "Configure Your Opponent";
         // reset
         clearSelectionIn(blackCardsElo);
         clearSelectionIn(blackCardsModels);

@@ -476,3 +476,57 @@ file: /AI_Chess_Senior_Design/GUI/static/CSS/controls.css
     opacity: 0.6;
     font-size: 12px;
 }
+
+/* /\* Container for the standalone engine card *\/ */
+/* .engine-row { */
+/*     display: flex; */
+/*     justify-content: center; */
+/*     width: 100%; */
+/*     margin-top: 15px; /\* Space between the ELO grid and Stockfish *\/ */
+/* } */
+
+/* /\* Force the Stockfish card to maintain a standard size *\/ */
+/* .stockfish-card { */
+/*     max-width: 250px; /\* Adjust this to match your other card widths *\/ */
+/*     width: 100%; */
+/* } */
+
+/* /\* Ensure the bot icon doesn't blow up the layout *\/ */
+/* .bot-icon { */
+/*     width: 40px; */
+/*     height: 40px; */
+/*     margin-bottom: 5px; */
+/* } */
+
+/* Container for the rows inside the difficulty column */
+.difficulty-column .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center; /* This keeps both rows centered and aligned */
+    width: 100%;
+}
+
+/* Force the Stockfish card to match the ELO cards size */
+.difficulty-card.nnue-card {
+    flex: 0 1 150px; /* Adjust 150px to match the width of your .difficulty-card */
+    min-width: 140px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Ensure the bot icon stays small and centered within the card */
+.bot-icon {
+    width: 35px;
+    height: 35px;
+    margin-bottom: 8px;
+    object-fit: contain;
+}
+
+/* Add a margin to the engine row to separate it from the ELO grid */
+.engine-row {
+    margin-top: 15px; 
+}
