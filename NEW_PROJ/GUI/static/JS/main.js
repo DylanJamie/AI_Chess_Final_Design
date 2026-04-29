@@ -76,7 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const blackCardsModels = document.getElementById('black-cards-models');
     const page1 = document.getElementById('difficulty-page-1');
     const page2 = document.getElementById('difficulty-page-2');
-
+    // New
+    // const nnueModel = card.getAttribute('data-nnue-model');
+    
     // show first overlay on load
     if (modeOverlay) modeOverlay.style.display = 'flex';
 
@@ -122,10 +124,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     // ELO page: set ELO (not NNUE) (clears model page selection)
                     const elo = parseInt(card.getAttribute('data-elo'));
                     const isNNUE = card.getAttribute('data-nnue') === 'true';
+		    const nnueModel = card.getAttribute('data-nnue-model');
                     if (isWhite) {
                         chosenWhiteElo = elo;
                         chosenWhiteNNUE = isNNUE;
-                        if (!isNNUE) {
+                        if (isNNUE) {
+			    /// new
+			    chosenWhiteNNUEModel = nnueModel;
+			}else { 
                             chosenWhiteNNUEModel = 'carlsen'; // reset to default
                             // Clear model page selection
                             clearSelectionIn(whiteCardsModels);
@@ -133,7 +139,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         chosenBlackElo = elo;
                         chosenBlackNNUE = isNNUE;
-                        if (!isNNUE) {
+                        if (isNNUE) {
+			    /// new
+			    chosenBlackNNUEModel = nnueModel;
+			}else {
+			    
                             chosenBlackNNUEModel = 'carlsen'; // reset to default
                             // Clear model page selection
                             clearSelectionIn(blackCardsModels);
@@ -187,8 +197,6 @@ document.addEventListener('DOMContentLoaded', function() {
         rightColumnModels.style.display = 'block';
         document.getElementById('right-column-title').textContent = 'CPU Engine';
         document.getElementById('right-column-title-models').textContent = 'CPU Engine';
-        // document.getElementById('difficulty-title').textContent = 'Select CPU Difficulty';
-	// Add this line to make the transition feel contextual
 	document.getElementById('difficulty-title').textContent = "Configure Your Opponent";
         // reset
         clearSelectionIn(blackCardsElo);
@@ -394,6 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	    boardHistory = [];
 	    moveNumber = 1;
 	    if (typeof currentMoveIdx !== 'undefined') currentMoveIdx = -1;
+	    currentDiffPage = 1;
 	    gameStarted = false;
 	    isGamePaused = false;
 	    currentPlayer = 'white';

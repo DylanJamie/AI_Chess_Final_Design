@@ -471,7 +471,9 @@ async function movePiece(targetSquare, targetPosition) {
 		    
                     // Record and save
                     recordMove(pieceCode, fromPosition, targetPosition);
-                    saveBoardState();
+                    /////////////////saveBoardState();
+		    // New
+		    setTimeout(() => saveBoardState(), 400);
 
 		    if (!response.is_check) {
 			document.getElementById('click-status').textContent = 
@@ -685,8 +687,10 @@ async function getEngineMove() {
             recordMove(result.engine_move.piece, result.engine_move.from, result.engine_move.to);
             
             // Save board state
-            saveBoardState();
-
+            ///////////////saveBoardState();
+	    // New
+	    setTimeout(() => saveBoardState(), 400);
+	    
 	    // Check if we are in check
 	    updateCheckStatus(result);
 	    

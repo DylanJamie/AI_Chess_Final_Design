@@ -477,27 +477,6 @@ file: /AI_Chess_Senior_Design/GUI/static/CSS/controls.css
     font-size: 12px;
 }
 
-/* /\* Container for the standalone engine card *\/ */
-/* .engine-row { */
-/*     display: flex; */
-/*     justify-content: center; */
-/*     width: 100%; */
-/*     margin-top: 15px; /\* Space between the ELO grid and Stockfish *\/ */
-/* } */
-
-/* /\* Force the Stockfish card to maintain a standard size *\/ */
-/* .stockfish-card { */
-/*     max-width: 250px; /\* Adjust this to match your other card widths *\/ */
-/*     width: 100%; */
-/* } */
-
-/* /\* Ensure the bot icon doesn't blow up the layout *\/ */
-/* .bot-icon { */
-/*     width: 40px; */
-/*     height: 40px; */
-/*     margin-bottom: 5px; */
-/* } */
-
 /* Container for the rows inside the difficulty column */
 .difficulty-column .cards {
     display: flex;

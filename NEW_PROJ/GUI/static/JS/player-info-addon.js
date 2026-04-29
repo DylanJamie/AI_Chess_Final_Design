@@ -33,7 +33,8 @@ function formatPlayerName(elo, isNNUE, nnueModel) {
 	    'nakamura': 'Hikaru Nakamura Bot',
 	    'krush': 'Irina Krush Bot',
 	    'polgar': 'Judit Polgar Bot',
-	    'anand': 'Viswanathan Anand Bot'
+	    'anand': 'Viswanathan Anand Bot',
+	    'stockfish': 'StockFish Computer'
 	};
 	return botNames[nnueModel] || 'Unknown Bot';
     } else {
@@ -43,7 +44,8 @@ function formatPlayerName(elo, isNNUE, nnueModel) {
             1900: "Intermediate",
             2200: "Advanced",
             2600: "Master",
-            3000: "Grandmaster"
+            3000: "Grandmaster",
+	    'stockfish': 'StockFish Computer'
         };
         return `${ranks[elo] || 'CPU'} (${elo} ELO)`;
     }
@@ -83,7 +85,7 @@ if (interruptBtn) {
 function updateScoreUI() {
     const whiteScoreElem = document.getElementById('white-score');
     const blackScoreElem = document.getElementById('black-score');
-
+    
     // Only update if the elements actually exist in the HTML
     if (whiteScoreElem && blackScoreElem) {
         whiteScoreElem.textContent = `Wins: ${gameScore.white}`;
