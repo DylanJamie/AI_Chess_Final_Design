@@ -16,7 +16,7 @@ from pathlib import Path
 from GUI.app import run_flask
 
 # Import the keygen
-import launcher_apps.keygen as kg
+import launcher_apps.keygen_window as kg
 keypath = Path(kg.create_private_key())
 
 # Configurations
